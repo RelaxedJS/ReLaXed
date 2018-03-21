@@ -1,0 +1,16 @@
+script(src='http://cdnjs.cloudflare.com/ajax/libs/raphael/2.2.0/raphael-min.js')
+script(src='http://cdnjs.cloudflare.com/ajax/libs/jquery/1.11.0/jquery.min.js')
+script(src='http://flowchart.js.org/flowchart-latest.js')
+script.
+  $(document).ready(function() {
+    var chart = flowchart.parse(`!{flowchartSpec}`)
+    var conf = {'symbols': []}
+    for (var c of ['start', 'end', 'operation', 'subroutine', 'condition', 'inputoutput']) {
+      conf.symbols[c] = {'class': c + '-element'}  
+    }
+    conf = Object.assign({}, conf, !{flowchartConf})
+    console.log(conf)
+    chart.drawSVG('chart', conf)
+  });
+body
+  #chart
