@@ -1,7 +1,7 @@
 {
-  "name": "relaxed-editor",
+  "name": "relaxedjs",
   "version": "0.1.0",
-  "description": "Friendly HTML/PUG/CSS converter to beautiful PDF documents",
+  "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/index.js",
   "bin": {
     "relaxed": "src/index.js"
@@ -10,6 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Zulko",
+  "homepage": "https://github.com/RelaxedJS",
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
