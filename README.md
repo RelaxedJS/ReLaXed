@@ -4,6 +4,29 @@
 
 ReLaXed is a software to create PDF documents using the Pug language (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
+
+<table>
+  <tr align="center">
+    <td>
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/book/"> Book </a>
+    </td>
+    <td>
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/letter/letter_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/letter/"> Letter </a>
+    </td>
+    <td>
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/resume/resume_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/resume/"> Resume </a>
+    </td>
+    <td>
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/business-card/businesscard_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/business-card/"> Business card </a>
+    </td>
+  </tr>
+</table>
+ 
+ 
 ## Getting started
 
 
