@@ -9,19 +9,27 @@ ReLaXed is a software to create PDF documents using the Pug language (a shorthan
   <tr align="center">
     <td>
       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
-      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/book/"> Book </a>
+      Book -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/book/"> source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/book/book.pdf"> PDF </a>
     </td>
     <td>
       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/letter/letter_screenshot.png" />
-      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/letter/"> Letter </a>
+      Letter -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/letter/"> Source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/letter/letter.pdf"> PDF </a>
     </td>
     <td>
       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/resume/resume_screenshot.png" />
-      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/resume/"> Resume </a>
+      Resume -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/resume/"> Source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/resume/resume.pdf"> PDF </a>
     </td>
     <td>
       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/business-card/businesscard_screenshot.png" />
-      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/business-card/"> Business card </a>
+      Visit card -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/business-card/"> Source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/business-card/business-card.pdf"> PDF </a>
     </td>
   </tr>
 </table>
