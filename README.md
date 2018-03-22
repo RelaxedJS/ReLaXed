@@ -41,7 +41,7 @@ ReLaXed is a software to create PDF documents using the Pug language (a shorthan
 Install ReLaXed with [NPM](https://www.npmjs.com/get-npm):
 
 ```
-npm install -h relaxedjs
+npm install -g relaxedjs
 ```
 
 To start a project, create a new empty file ``my_document.pug`, and start ReLaXed from a terminal:
