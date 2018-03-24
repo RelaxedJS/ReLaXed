@@ -67,7 +67,7 @@ To go further:
 - Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
 - Read about our [recommended setup](https://github.com/RelaxedJS/ReLaXed/wiki/Tips-and-recommendations) to use ReLaXed
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
-- Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/Comparison-with-other-solutions) of ReLaXed and other document editing systems
+- Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) of ReLaXed and other document editing systems
 
 ## Why yet another PDF document editor ?
 
