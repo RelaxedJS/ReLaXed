@@ -35,15 +35,22 @@ It enables to define complex layouts with CSS and Javascript while writing the c
     </td>
   </tr>
 </table>
- 
+
+## Installing ReLaXed
+
+At the moment, the best solution is to install ReLaXed in an empty directory as follows:
+
+```
+git clone https://github.com/RelaxedJS/ReLaXed.git .
+npm link --unsafe-perm=true
+```
+
+This provides your system with the ``relaxed`` command.
+
+Hopefully in the future install will be as simple as ``npm i -g relaxedjs``, but there are known [issues](https://github.com/GoogleChrome/puppeteer/issues/375#issuecomment-363466257) with puppeteer. In case it doesn't work for you, have a look at the [troubleshooting](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting) page. Any help towards a simpler install procedure is welcome.
+
+
 ## Getting started
-
-
-Install ReLaXed with [NPM](https://www.npmjs.com/get-npm):
-
-```
-npm install -g relaxedjs
-```
 
 To start a project, create a new empty file ``my_document.pug``, and start a ReLaXed process from a terminal:
 
