@@ -2,7 +2,9 @@
 
 # ReLaXed
 
-ReLaXed is a software to create PDF documents using the Pug language (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
+ReLaXed is a software to create PDF documents interactively using the Pug language (a shorthand for HTML).
+
+It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX. Here are some examples:
 
 
 <table>
@@ -34,7 +36,6 @@ ReLaXed is a software to create PDF documents using the Pug language (a shorthan
   </tr>
 </table>
  
- 
 ## Getting started
 
 
@@ -44,25 +45,29 @@ Install ReLaXed with [NPM](https://www.npmjs.com/get-npm):
 npm install -g relaxedjs
 ```
 
-To start a project, create a new empty file ``my_document.pug`, and start ReLaXed from a terminal:
+To start a project, create a new empty file ``my_document.pug``, and start a ReLaXed process from a terminal:
 
 ```
 relaxed my_document.pug
 ```
 
-Now ReLaXed is watching ``my_document.pug`` and all its directory. Everytime a file changes,  ``my_document.pug`` will be compiled as ``my_document.pdf``. Tot est this, write the following in ``my_document.pug`` and save:
+ReLaXed will watch ``my_document.pug`` and its directory. Everytime a file changes,  ``my_document.pug`` will be compiled as ``my_document.pdf``.
+
+Now write and save the following in ``my_document.pug``:
 
 ```pug
 h1 My document's title
 p A paragraph in my document
 ```
+A new file ``my_document.pdf`` will be created. Every time you modify and save the sources, the file is automatically updated (make sure to use a PDF viewer with auto-refresh to see you changes happen in *real-time*). That's all there is to know to start writing your first documents !
 
-Now you know the basics and you can write your first documents ! To go further:
+### To go further
+
 - Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html).
-- Browse the [examples]()
-- Read about our [recommended setup]() to use ReLaXed
-- Learn some [advanced features]() of ReLaxed
-- Read [this comparison]() of ReLaXed and other document editing systems
+- Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
+- Read about our [recommended setup](https://github.com/RelaxedJS/ReLaXed/wiki/Tips-and-recommendations) to use ReLaXed
+- Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
+- Read [this comparison](https://github.com/RelaxedJS/ReLaXed/wiki/Comparison-with-other-solutions) of ReLaXed and other document editing systems
 
 ## How ReLaXed works
 
