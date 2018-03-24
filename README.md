@@ -61,18 +61,34 @@ p A paragraph in my document
 ```
 A new file ``my_document.pdf`` will be created. Every time you modify and save the sources, the file is automatically updated (make sure to use a PDF viewer with auto-refresh to see you changes happen in *real-time*). That's all there is to know to start writing your first documents !
 
-### To go further
+To go further:
 
 - Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html).
 - Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
 - Read about our [recommended setup](https://github.com/RelaxedJS/ReLaXed/wiki/Tips-and-recommendations) to use ReLaXed
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
-- Read [this comparison](https://github.com/RelaxedJS/ReLaXed/wiki/Comparison-with-other-solutions) of ReLaXed and other document editing systems
+- Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/Comparison-with-other-solutions) of ReLaXed and other document editing systems
+
+## Why yet another PDF document editor ?
+
+Many of us prefer mark-up languages (Markdown, LaTeX, etc.) to interfaced document editors like Ms Office or Google Docs. This is because mark-up languages make it easier to quickly write documents with consistent style.
+
+However, Markdown is limited to the title/sections/paragraphs structure, and LaTeX has obscure syntax and errors that also make it difficult to go off the beaten tracks.
+
+On the other hand, web technologies have never looked so good.
+
+- Plenty of CSS frameworks will make sure your documents will look clean and modern.
+- Javascript frameworks can plot schemas, highlight code, or render maths equations the same way LaTeX does.
+- Millions of people (and growing) are now fluent in these technologies.
+- Shorthand languages like Pug and SCSS are finally making it fun to write HTML and CSS.
+- (Headless) web browsers can easily turn all these technologies into PDF, on any platform.
+
+ReLaXed is an attempt at finding the most comfortable way to leverage this for desktop PDF creation.
 
 ## How ReLaXed works
 
 ReLaxed consists of few lines of code binding together other software. It uses [chokidar](https://github.com/paulmillr/chokidar) to watch the file system. when a file is changed, several javascript libraries are used to compile SCSS, Pug, Markdown, and [diagram files] into an HTML page which is then printed to a PDF file by a headless instance of Chromium (via [puppeteer](https://github.com/GoogleChrome/puppeteer)).
 
-## Contribute
+## Contribute !
 
 ReLaXed is an open source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/Zulko/relaxed) under the ISC licence. Everyone is welcome to contribute!
