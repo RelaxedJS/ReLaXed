@@ -1,6 +1,6 @@
 {
   "name": "relaxedjs",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/index.js",
   "bin": {
@@ -15,6 +15,7 @@
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.1",
+    "colors": "^1.2.1",
     "commander": "^2.14.1",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.0.0",

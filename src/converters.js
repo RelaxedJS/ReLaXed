@@ -94,7 +94,13 @@ function getMatch (string, query) {
 exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, outputPath) {
   var html
   if (masterPath.endsWith('.pug')) {
-    html = pug.renderFile(masterPath)
+    try {
+      html = pug.renderFile(masterPath)
+    } catch (error) {
+      console.log(error.message)
+      console.error('There was a Pug error (see above)'.red)
+      return
+    }
   } else {
     html = fs.readFileSync(masterPath, 'utf8')
   }

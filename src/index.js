@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-
+const colors = require('colors')
 const program = require('commander')
 const chokidar = require('chokidar')
 const puppeteer = require('puppeteer')
@@ -46,6 +46,12 @@ async function main () {
       pollInterval: 100
     }
   }).on('change', (filepath) => {
+    var shortFilepath = filepath.slice(inputDir.length, filepath.length)
+    if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
+         '.flowchart', '.flowchart.json', '.vegalite.json'].some(ext => filepath.endsWith(ext)))) {
+      return
+    }
+    console.log(`\nProcessing detected change in ${shortFilepath}...`.magenta.bold)
     var t0 = performance.now()
     var taskPromise = null
     if (['.pug', '.md', '.html', '.css', '.scss', '.svg'].some(ext => filepath.endsWith(ext))) {
@@ -63,7 +69,7 @@ async function main () {
     if (taskPromise) {
       taskPromise.then(function () {
         var duration = ((performance.now() - t0) / 1000).toFixed(2)
-        console.log(`Processed change in ${filepath} in ${duration}s`)
+        console.log(`... done in ${duration}s`.magenta.bold)
       })
     }
   })
