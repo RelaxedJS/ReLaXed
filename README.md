@@ -39,6 +39,8 @@ Here it is in action in the Atom editor:
       <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/business-card/business-card.pdf"> PDF </a>
     </td>
   </tr>
+</table>
+<table>
   <tr align="center">
     <td width="25%">
       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/slides/slides_screenshot.png" />
@@ -58,6 +60,7 @@ Here it is in action in the Atom editor:
        <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/paper/"> Source </a> /
        <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/paper/paper.pdf"> PDF </a>
      </td>
+   <td width="25%"></td>
   </tr>
 </table>
 
