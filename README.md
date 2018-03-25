@@ -85,11 +85,11 @@ However, Markdown is limited to the title/sections/paragraphs structure, and LaT
 
 On the other hand, web technologies have never looked so good.
 
-- Plenty of CSS frameworks will make sure your documents will look clean and modern.
-- Javascript frameworks can plot schemas, highlight code, or render maths equations the same way LaTeX does.
-- Millions of people (and growing) are now fluent in these technologies.
+- Beautiful CSS frameworks will make sure your documents look clean and modern.
+- There are Javascript libraries for pretty much anything: plotting, highlight code, rendering equations...
+- Millions of people (and growing) know how to use these.
 - Shorthand languages like Pug and SCSS are finally making it fun to write HTML and CSS.
-- (Headless) web browsers can easily turn all these technologies into PDF, on any platform.
+- (Headless) web browsers can easily turn web documents into PDF, on any platform.
 
 ReLaXed is an attempt at finding the most comfortable way to leverage this for desktop PDF creation.
 
