@@ -2,9 +2,14 @@
 
 # ReLaXed
 
-ReLaXed is a software to create PDF documents interactively using the Pug language (a shorthand for HTML).
+ReLaXed is a software to create PDF documents interactively using the Pug language (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
-It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX. Here are some examples:
+Here it is in action in the Atom editor:
+
+
+<p align='center'><img src="https://i.imgur.com/4N4fSYY.gif" title="source: imgur.com" /></p>
+
+ And here are a few output examples:
 
 
 <table>
@@ -35,15 +40,46 @@ It enables to define complex layouts with CSS and Javascript while writing the c
     </td>
   </tr>
 </table>
- 
+<table>
+  <tr align="center">
+    <td width="25%">
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/slides/slides_screenshot.png" />
+      Slides -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/slides/"> Source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/slides/slides.pdf"> PDF </a>
+    </td>
+    <td width="25%">
+      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/report/report_screenshot.png" />
+      Report -
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/report/"> Source </a> /
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/report/report.pdf"> PDF </a>
+    </td>
+    <td width="25%">
+       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/paper/paper_screenshot.png" />
+       Paper -
+       <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/paper/"> Source </a> /
+       <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/paper/paper.pdf"> PDF </a>
+     </td>
+   <td width="25%"></td>
+  </tr>
+</table>
+
+## Installing ReLaXed
+
+At the moment, the best solution is to install ReLaXed in an empty directory as follows:
+
+```
+git clone https://github.com/RelaxedJS/ReLaXed.git .
+npm install
+sudo npm link --unsafe-perm=true
+```
+
+This provides your system with the ``relaxed`` command.
+
+Hopefully in the future install will be as simple as ``npm i -g relaxedjs``, but there are known [issues](https://github.com/GoogleChrome/puppeteer/issues/375#issuecomment-363466257) with puppeteer. In case it doesn't work for you, have a look at the [troubleshooting](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting) page. Any help towards a simpler install procedure is welcome.
+
+
 ## Getting started
-
-
-Install ReLaXed with [NPM](https://www.npmjs.com/get-npm):
-
-```
-npm install -g relaxedjs
-```
 
 To start a project, create a new empty file ``my_document.pug``, and start a ReLaXed process from a terminal:
 
@@ -77,11 +113,11 @@ However, Markdown is limited to the title/sections/paragraphs structure, and LaT
 
 On the other hand, web technologies have never looked so good.
 
-- Plenty of CSS frameworks will make sure your documents will look clean and modern.
-- Javascript frameworks can plot schemas, highlight code, or render maths equations the same way LaTeX does.
-- Millions of people (and growing) are now fluent in these technologies.
+- Beautiful CSS frameworks will make sure your documents look clean and modern.
+- There are Javascript libraries for pretty much anything: plotting, highlight code, rendering equations...
+- Millions of people (and growing) know how to use these.
 - Shorthand languages like Pug and SCSS are finally making it fun to write HTML and CSS.
-- (Headless) web browsers can easily turn all these technologies into PDF, on any platform.
+- (Headless) web browsers can easily turn web documents into PDF, on any platform.
 
 ReLaXed is an attempt at finding the most comfortable way to leverage this for desktop PDF creation.
 
