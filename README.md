@@ -105,7 +105,7 @@ To go further:
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
 - Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) of ReLaXed and other document editing systems
 
-## Why yet another PDF document editor ?
+## Why yet another PDF document creator ?
 
 Many of us prefer mark-up languages (Markdown, LaTeX, etc.) to interfaced document editors like Ms Office or Google Docs. This is because mark-up languages make it easier to quickly write documents with consistent style.
 
