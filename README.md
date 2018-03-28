@@ -2,7 +2,7 @@
 
 # ReLaXed
 
-ReLaXed is a software to create PDF documents interactively using the [Pug](https://pugjs.org/api/getting-started.html) language (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
+ReLaXed is a software to create PDF documents interactively using HTML or [Pug](https://pugjs.org/api/getting-started.html) (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
 Here it is in action in the Atom editor:
 
