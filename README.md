@@ -15,7 +15,7 @@ Here it is in action in the Atom editor:
 <table>
   <tr align="center">
     <td width="25%">
-      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/slides/slides.pdf">
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/book/book.pdf">
         <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
       </a>
       Book -
