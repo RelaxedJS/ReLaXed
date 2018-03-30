@@ -15,7 +15,9 @@ Here it is in action in the Atom editor:
 <table>
   <tr align="center">
     <td width="25%">
-      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/slides/slides.pdf">
+        <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
+      </a>
       Book -
       <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/book/"> source </a> /
       <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/book/book.pdf"> PDF </a>
@@ -63,6 +65,8 @@ Here it is in action in the Atom editor:
    <td width="25%"></td>
   </tr>
 </table>
+
+ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), plots generation (via [Vegalite](https://vega.github.io/vega-lite/)), diagram generation (via [Mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing Javascript of CSS framework.
 
 ## Installing ReLaXed
 
