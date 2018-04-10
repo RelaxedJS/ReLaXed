@@ -2,7 +2,7 @@
 
 # ReLaXed
 
-ReLaXed is a software to create PDF documents interactively using the Pug language (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
+ReLaXed is a software to create PDF documents interactively using HTML or [Pug](https://pugjs.org/api/getting-started.html) (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
 Here it is in action in the Atom editor:
 
@@ -15,7 +15,9 @@ Here it is in action in the Atom editor:
 <table>
   <tr align="center">
     <td width="25%">
-      <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
+      <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/book/book.pdf">
+        <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/book/book_screenshot.png" />
+      </a>
       Book -
       <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/book/"> source </a> /
       <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/book/book.pdf"> PDF </a>
@@ -64,6 +66,8 @@ Here it is in action in the Atom editor:
   </tr>
 </table>
 
+ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), plots generation (via [Vegalite](https://vega.github.io/vega-lite/)), diagram generation (via [Mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing Javascript of CSS framework.
+
 ## Installing ReLaXed
 
 At the moment, the best solution is to install ReLaXed in an empty directory as follows:
@@ -105,7 +109,7 @@ To go further:
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
 - Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) of ReLaXed and other document editing systems
 
-## Why yet another PDF document editor ?
+## Why yet another PDF document creator ?
 
 Many of us prefer mark-up languages (Markdown, LaTeX, etc.) to interfaced document editors like Ms Office or Google Docs. This is because mark-up languages make it easier to quickly write documents with consistent style.
 
