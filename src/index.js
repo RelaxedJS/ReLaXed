@@ -48,14 +48,17 @@ async function main () {
   }).on('change', (filepath) => {
     var shortFilepath = filepath.slice(inputDir.length, filepath.length)
     if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-         '.flowchart', '.flowchart.json', '.vegalite.json'].some(ext => filepath.endsWith(ext)))) {
+           '.chart.js', '.png', '.flowchart', '.flowchart.json',
+           '.vegalite.json'].some(ext => filepath.endsWith(ext)))) {
       return
     }
     console.log(`\nProcessing detected change in ${shortFilepath}...`.magenta.bold)
     var t0 = performance.now()
     var taskPromise = null
-    if (['.pug', '.md', '.html', '.css', '.scss', '.svg'].some(ext => filepath.endsWith(ext))) {
+    if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
       taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTML, outputPath)
+    } else if (filepath.endsWith('.chart.js')) {
+      taskPromise = converters.chartjsToPNG(filepath, page)
     } else if (filepath.endsWith('.mermaid')) {
       taskPromise = converters.mermaidToSvg(filepath, page)
     } else if (filepath.endsWith('.flowchart')) {

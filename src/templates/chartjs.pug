@@ -1,0 +1,24 @@
+script(src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.7.2/Chart.min.js')
+#chartContainer
+  canvas#myChart
+script.
+  window.pngData = false
+  var canvas = document.getElementById("myChart")
+  var container = document.getElementById("chartContainer")
+  function onComplete () {
+    window.pngData = canvas.toDataURL();
+  }
+  var config=!{chartSpec};
+  config.options.animation = {duration: 0, onComplete: onComplete}
+  if (config.options.width) {
+    canvas.style.width = config.options.width
+    container.style.width = config.options.width
+  }
+  if (config.options.height) {
+    canvas.style.height = config.options.height
+    container.style.height = config.options.height
+  }
+  
+  var ctx = document.getElementById("myChart").getContext('2d');
+  var myChart = new Chart(ctx, config)
+  

@@ -55,8 +55,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
 exports.vegaliteToSvg = async function (vegalitePath, page) {
   var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
   var html = formatTemplate('vegalite', { vegaliteSpec })
-  console.log('file:' + vegalitePath)
-  var tempHTML = vegalitePath + '.htm'
+  // var tempHTML = vegalitePath + '.htm'
   // await writeFile(tempHTML, html)
   // await page.goto('file:' + tempHTML);
   await page.setContent(html)
@@ -69,6 +68,29 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
   })
   var svgPath = vegalitePath.substr(0, vegalitePath.length - '.vegalite.json'.length) + '.svg'
   await writeFile(svgPath, svg)
+}
+
+// https://intoli.com/blog/saving-images/
+function parseDataUrl (dataUrl) {
+  const matches = dataUrl.match(/^data:(.+);base64,(.+)$/);
+  if (matches.length !== 3) {
+    throw new Error('Could not parse data URL.');
+  }
+  return { mime: matches[1], buffer: Buffer.from(matches[2], 'base64') };
+};
+
+exports.chartjsToPNG = async function (chartjsPath, page) {
+  var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
+  var html = formatTemplate('chartjs', { chartSpec })
+  var tempHTML = chartjsPath + '.htm'
+  await writeFile(tempHTML, html)
+  // await page.goto('file:' + tempHTML);
+  await page.setContent(html)
+  await page.waitForFunction(() => window.pngData)
+  const dataUrl = await page.evaluate(() => window.pngData)
+  const { buffer } = parseDataUrl(dataUrl)
+  var pngPath = chartjsPath.substr(0, chartjsPath.length - '.chart.js'.length) + '.png'
+  await writeFile(pngPath, buffer, 'base64')
 }
 
 function asyncMathjax (html) {
