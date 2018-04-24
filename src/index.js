@@ -49,7 +49,7 @@ async function main () {
     var shortFilepath = filepath.slice(inputDir.length, filepath.length)
     if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
            '.chart.js', '.png', '.flowchart', '.flowchart.json',
-           '.vegalite.json'].some(ext => filepath.endsWith(ext)))) {
+           '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
       return
     }
     console.log(`\nProcessing detected change in ${shortFilepath}...`.magenta.bold)
@@ -68,6 +68,8 @@ async function main () {
       taskPromise = converters.flowchartToSvg(flowchartFile, page)
     } else if (filepath.endsWith('.vegalite.json')) {
       taskPromise = converters.vegaliteToSvg(filepath, page)
+    } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
+      converters.tableToPug(filepath)
     }
     if (taskPromise) {
       taskPromise.then(function () {

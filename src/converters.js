@@ -5,10 +5,13 @@ const pug = require('pug')
 const writeFile = util.promisify(fs.writeFile)
 const cheerio = require('cheerio')
 const path = require('path')
+const csv = require('csvtojson')
+const html2jade = require('html2jade');
 
 function formatTemplate (tempName, data) {
   return pug.renderFile(path.join(__dirname, 'templates', tempName + '.pug'), data)
 }
+
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
@@ -24,6 +27,7 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
   var svgPath = mermaidPath.substr(0, mermaidPath.lastIndexOf('.')) + '.svg'
   await writeFile(svgPath, svg)
 }
+
 
 exports.flowchartToSvg = async function (flowchartPath, page) {
   var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
@@ -52,6 +56,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
   await writeFile(svgPath, svg)
 }
 
+
 exports.vegaliteToSvg = async function (vegalitePath, page) {
   var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
   var html = formatTemplate('vegalite', { vegaliteSpec })
@@ -70,8 +75,38 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
   await writeFile(svgPath, svg)
 }
 
-// https://intoli.com/blog/saving-images/
+
+exports.tableToPug = function (tablePath) {
+  var extension, header
+  var rows = []
+  csv({noheader: true})
+    .fromFile(tablePath)
+    .on('csv', (csvRow) => { rows.push(csvRow) })
+    .on('done', (error) => {
+      if (error) {
+        console.log('error', error)
+      } else {
+        if (tablePath.endsWith('.htable.csv')) {
+          extension = '.htable.csv'
+          header = rows.shift()
+        } else {
+          extension = '.table.csv'
+          header = null
+        }
+        var html = formatTemplate('table', { header: header, tbody: rows })
+        var pugPath = tablePath.substr(0, tablePath.length - extension.length) + '.pug'
+        html2jade.convertHtml(html, {bodyless: true}, function (err, jade) {
+          if (err) {
+            console.log(err)
+          }
+          writeFile(pugPath, jade)
+        })
+      }
+    })
+}
+
 function parseDataUrl (dataUrl) {
+  // from https://intoli.com/blog/saving-images/
   const matches = dataUrl.match(/^data:(.+);base64,(.+)$/);
   if (matches.length !== 3) {
     throw new Error('Could not parse data URL.');

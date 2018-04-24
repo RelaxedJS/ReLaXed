@@ -17,6 +17,8 @@
     "chokidar": "^2.0.1",
     "colors": "^1.2.1",
     "commander": "^2.14.1",
+    "csvtojson": "^1.1.9",
+    "html2jade": "^0.8.6",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.0.0",
     "jstransformer-scss": "^1.0.0",
