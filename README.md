@@ -147,7 +147,7 @@ ReLaXed is an attempt at finding the most comfortable way to leverage this for d
 
 ReLaXed consists of few lines of code binding together other software. It uses [chokidar](https://github.com/paulmillr/chokidar) to watch the file system. when a file is changed, several javascript libraries are used to compile SCSS, Pug, Markdown, and diagram files (mermaid, flowchart, ChartJS) into an HTML page which is then printed to a PDF file by a headless instance of Chromium (via [puppeteer](https://github.com/GoogleChrome/puppeteer)).
 
-<p align="center"><img width='270px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></p>
+<p align="center"><img width='600px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></p>
 
 ## Contribute !
 
