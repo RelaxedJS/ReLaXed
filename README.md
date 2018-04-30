@@ -73,11 +73,18 @@ Here it is in action in the Atom editor:
        <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/paper/"> Source </a> /
        <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/paper/paper.pdf"> PDF </a>
      </td>
-   <td width="25%"></td>
+   <td width="25%">
+     <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/poster/poster.pdf">
+       <img src="https://github.com/RelaxedJS/ReLaXed-examples/raw/master/examples/poster/poster_screenshot.png" />
+     </a>
+     Poster -
+     <a href="https://github.com/RelaxedJS/ReLaXed-examples/tree/master/examples/poster/"> Source </a> /
+     <a href="https://github.com/RelaxedJS/ReLaXed-examples/blob/master/examples/poster/poster.pdf"> PDF </a>
+   </td>
   </tr>
 </table>
 
-ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), plots generation (via [Vegalite](https://vega.github.io/vega-lite/)), diagram generation (via [Mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing Javascript of CSS framework.
+ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), CSV conversion to HTML tables, plots generation (via [Vegalite](https://vega.github.io/vega-lite/) or [ChartJS](https://www.chartjs.org/)), diagram generation (via [Mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing Javascript of CSS framework.
 
 ## Installing ReLaXed
 
@@ -139,6 +146,8 @@ ReLaXed is an attempt at finding the most comfortable way to leverage this for d
 ## How ReLaXed works
 
 ReLaXed consists of few lines of code binding together other software. It uses [chokidar](https://github.com/paulmillr/chokidar) to watch the file system. when a file is changed, several javascript libraries are used to compile SCSS, Pug, Markdown, and diagram files (mermaid, flowchart, ChartJS) into an HTML page which is then printed to a PDF file by a headless instance of Chromium (via [puppeteer](https://github.com/GoogleChrome/puppeteer)).
+
+<p align="center"><img width='270px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></p>
 
 ## Contribute !
 
