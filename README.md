@@ -2,15 +2,13 @@
 
 # ReLaXed
 
-ReLaXed is a software to create PDF documents interactively using HTML or [Pug](https://pugjs.org/api/getting-started.html) (a shorthand for HTML). It enables to define complex layouts with CSS and Javascript while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
+ReLaXed is a tool which creates PDF documents interactively using HTML or [Pug](https://pugjs.org/api/getting-started.html) (a shorthand for HTML). It allows complex layouts to be defined with CSS and JavaScript, while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
 Here it is in action in the Atom editor:
 
-
 <p align='center'><img src="https://i.imgur.com/4N4fSYY.gif" title="source: imgur.com" /></p>
 
- And here are a few output examples:
-
+And here are a few output examples:
 
 <table>
   <tr align="center">
@@ -84,7 +82,7 @@ Here it is in action in the Atom editor:
   </tr>
 </table>
 
-ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), CSV conversion to HTML tables, plots generation (via [Vegalite](https://vega.github.io/vega-lite/) or [ChartJS](https://www.chartjs.org/)), diagram generation (via [Mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing Javascript of CSS framework.
+ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJax](https://www.mathjax.org/)), CSV conversion to HTML tables, plot generation (via [Vega-Lite](https://vega.github.io/vega-lite/) or [Chart.js](https://www.chartjs.org/)), and diagram generation (via [mermaid](https://mermaidjs.github.io/)). Many more features can be added simply by importing an existing JavaScript or CSS framework.
 
 ## Installing ReLaXed
 
@@ -98,18 +96,18 @@ sudo npm link --unsafe-perm=true
 
 This provides your system with the ``relaxed`` command.
 
-Hopefully in the future install will be as simple as ``npm i -g relaxedjs``, but there are known [issues](https://github.com/GoogleChrome/puppeteer/issues/375#issuecomment-363466257) with puppeteer. In case it doesn't work for you, have a look at the [troubleshooting](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting) page. Any help towards a simpler install procedure is welcome.
+Hopefully, in the future, installation will be as simple as ``npm i -g relaxedjs``, but there are known [issues](https://github.com/GoogleChrome/puppeteer/issues/375#issuecomment-363466257) with Puppeteer. In case it doesn't work for you, have a look at the [troubleshooting](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting) page. Any help towards a simpler installation procedure is welcome.
 
 
 ## Getting started
 
-To start a project, create a new empty file ``my_document.pug``, and start a ReLaXed process from a terminal:
+To start a project, create a new, empty ``my_document.pug`` file, and start a ReLaXed process from a terminal:
 
 ```
 relaxed my_document.pug
 ```
 
-ReLaXed will watch ``my_document.pug`` and its directory. Everytime a file changes,  ``my_document.pug`` will be compiled as ``my_document.pdf``.
+ReLaXed will watch ``my_document.pug`` and its directory. Every time a file changes, ``my_document.pug`` will be compiled as ``my_document.pdf``.
 
 Now write and save the following in ``my_document.pug``:
 
@@ -117,26 +115,26 @@ Now write and save the following in ``my_document.pug``:
 h1 My document's title
 p A paragraph in my document
 ```
-A new file ``my_document.pdf`` will be created. Every time you modify and save the sources, the file is automatically updated (make sure to use a PDF viewer with auto-refresh to see you changes happen in *real-time*). That's all there is to know to start writing your first documents !
+A new file, ``my_document.pdf``, will be created. Every time you modify and save the sources, the file is automatically updated (make sure you use a PDF viewer with auto-refresh to see your changes happen in *real-time*). That's all there is to know to start creating your first document!
 
 To go further:
 
-- Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html).
+- Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html)
 - Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
 - Read about our [recommended setup](https://github.com/RelaxedJS/ReLaXed/wiki/Tips-and-recommendations) to use ReLaXed
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
-- Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) of ReLaXed and other document editing systems
+- Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) between ReLaXed and other document-editing systems
 
-## Why yet another PDF document creator ?
+## Why yet another PDF document creator?
 
-Many of us prefer mark-up languages (Markdown, LaTeX, etc.) to interfaced document editors like Ms Office or Google Docs. This is because mark-up languages make it easier to quickly write documents with consistent style.
+Many of us prefer markup languages (Markdown, LaTeX, etc.) to GUI document-editors like MS Office or Google Docs. This is because markup languages make it easier to quickly write documents in a consistent style.
 
-However, Markdown is limited to the title/sections/paragraphs structure, and LaTeX has obscure syntax and errors that also make it difficult to go off the beaten tracks.
+However, Markdown is limited to the title/sections/paragraphs structure, and LaTeX has obscure syntax and errors that also make it difficult to stray from the beaten track.
 
 On the other hand, web technologies have never looked so good.
 
-- Beautiful CSS frameworks will make sure your documents look clean and modern.
-- There are Javascript libraries for pretty much anything: plotting, highlight code, rendering equations...
+- Beautiful CSS frameworks make sure your documents look clean and modern.
+- There are JavaScript libraries for pretty much anything: plotting, highlight code, rendering equations...
 - Millions of people (and growing) know how to use these.
 - Shorthand languages like Pug and SCSS are finally making it fun to write HTML and CSS.
 - (Headless) web browsers can easily turn web documents into PDF, on any platform.
@@ -145,10 +143,10 @@ ReLaXed is an attempt at finding the most comfortable way to leverage this for d
 
 ## How ReLaXed works
 
-ReLaXed consists of few lines of code binding together other software. It uses [chokidar](https://github.com/paulmillr/chokidar) to watch the file system. when a file is changed, several javascript libraries are used to compile SCSS, Pug, Markdown, and diagram files (mermaid, flowchart, ChartJS) into an HTML page which is then printed to a PDF file by a headless instance of Chromium (via [puppeteer](https://github.com/GoogleChrome/puppeteer)).
+ReLaXed consists of a few lines of code binding together other software. It uses [Chokidar](https://github.com/paulmillr/chokidar) to watch the file system. When a file is changed, several JavaScript libraries are used to compile SCSS, Pug, Markdown, and diagram files (mermaid, flowchart.js, Chart.js) into an HTML page which is then printed to a PDF file by a headless instance of Chromium (via [Puppeteer](https://github.com/GoogleChrome/puppeteer)).
 
-<p align="center"><img width='600px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></p>
+<p align="center"><img width='600px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></between
 
-## Contribute !
+## Contribute!
 
-ReLaXed is an open source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/Zulko/relaxed) under the ISC licence. Everyone is welcome to contribute!
+ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/Zulko/relaxed) under the ISC licence. Everyone is welcome to contribute!
