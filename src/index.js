@@ -14,6 +14,7 @@ program
   .usage('<input> [output] [options]')
   .arguments('<input> [output] [options]')
   .option('-w, --watch', 'option description')
+  .option('--no-sandbox', 'disable puppeteer sandboxing')
   .action(function (inp, out) {
     input = inp
     output = out
@@ -28,11 +29,24 @@ const outputPath = path.resolve(output)
 const inputDir = path.resolve(inputPath, '..')
 const tempHTML = path.join(inputDir, '_temp.htm')
 
+function configurePuppeteer () {
+  const config = {
+    headless: true,
+    args: []
+  }
+
+  if (!program.sandbox) {
+    config.args.push('--no-sandbox');
+  }
+
+  return config;
+}
+
 async function main () {
   console.log('Watching ' + input + ' and its directory tree.')
-  const browser = await puppeteer.launch({
-    headless: true
-  })
+
+  const puppeteerConfig = configurePuppeteer();
+  const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
   page.on('pageerror', function (err) {
     console.log('Page error: ' + err.toString())
