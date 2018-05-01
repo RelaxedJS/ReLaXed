@@ -14,19 +14,18 @@
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
-    "chokidar": "^2.0.1",
-    "colors": "^1.2.1",
-    "commander": "^2.14.1",
+    "chokidar": "^2.0.3",
+    "colors": "^1.2.3",
+    "commander": "^2.15.1",
     "csvtojson": "^1.1.9",
     "html2jade": "^0.8.6",
     "jstransformer-highlight": "^1.0.1",
-    "jstransformer-markdown-it": "^2.0.0",
+    "jstransformer-markdown-it": "^2.1.0",
     "jstransformer-scss": "^1.0.0",
     "jstransformer-svgo": "^1.0.0",
     "mathjax-node-page": "^2.0.0",
     "mermaid": "^7.1.2",
-    "npm": "^5.6.0",
-    "pug": "^2.0.0-rc.4",
-    "puppeteer": "^1.0.0"
+    "pug": "^2.0.3",
+    "puppeteer": "^1.3.0"
   }
 }
