@@ -20,6 +20,10 @@ coverage
 # nyc test coverage
 .nyc_output
 
+# OS specific temp files
+.DS_Store
+Thumbs.db
+
 # Grunt intermediate storage (http://gruntjs.com/creating-plugins#storing-task-files)
 .grunt
 
