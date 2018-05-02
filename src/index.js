@@ -12,8 +12,8 @@ var input, output
 program
   .version('0.0.1')
   .usage('<input> [output] [options]')
-  .option('-w, --watch', 'option description')
   .arguments('<input> [output] [options]')
+  .option('-w, --watch', 'option description')
   .action(function (inp, out) {
     input = inp
     output = out
