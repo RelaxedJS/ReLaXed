@@ -12,17 +12,24 @@ var input, output
 program
   .version('0.0.1')
   .usage('<input> [output] [options]')
-  .arguments('<input> [output] [options]')
   .option('-w, --watch', 'option description')
+  .arguments('<input> [output] [options]')
   .action(function (inp, out) {
     input = inp
     output = out
   })
 
 program.parse(process.argv)
-if (!output) {
-  output = input.substr(0, input.lastIndexOf('.')) + '.pdf'
+
+if (input) {
+  if (!output) {
+    output = input.substr(0, input.lastIndexOf('.')) + '.pdf'
+  }
+} else {
+  console.error('no <input> file/path given')
+  process.exit(1)
 }
+
 const inputPath = path.resolve(input)
 const outputPath = path.resolve(output)
 const inputDir = path.resolve(inputPath, '..')
