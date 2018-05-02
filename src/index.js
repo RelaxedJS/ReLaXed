@@ -20,9 +20,16 @@ program
   })
 
 program.parse(process.argv)
-if (!output) {
-  output = input.substr(0, input.lastIndexOf('.')) + '.pdf'
+
+if (input) {
+  if (!output) {
+    output = input.substr(0, input.lastIndexOf('.')) + '.pdf'
+  }
+} else {
+  console.error('no <input> file/path given')
+  process.exit(1)
 }
+
 const inputPath = path.resolve(input)
 const outputPath = path.resolve(output)
 const inputDir = path.resolve(inputPath, '..')
