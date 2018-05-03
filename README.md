@@ -125,6 +125,21 @@ To go further:
 - Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
 - Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) between ReLaXed and other document-editing systems
 
+## CLI Options
+General usage: ```input [output] [options]```
+
+```output``` can be used to specify the filname of the generated pdf .
+
+| Option | Description |
+| --- | --- |
+| -w --watch | Extra locations to watch for file changes (Can be called multiple times) |
+| -t --temp | Choose where the temporary htm files are created |
+
+For instance, to have a shared theme and images across multiple files
+```
+relaxed my_document.pug --watch assets/styles/theme.scss --watch assets/images
+```
+
 ## Why yet another PDF document creator?
 
 Many of us prefer markup languages (Markdown, LaTeX, etc.) to GUI document-editors like MS Office or Google Docs. This is because markup languages make it easier to quickly write documents in a consistent style.
