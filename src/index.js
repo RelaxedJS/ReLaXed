@@ -7,6 +7,10 @@ const { performance } = require('perf_hooks')
 const path = require('path')
 const converters = require('./converters.js')
 
+const chromiumRevision = process.env.PUPPETEER_CHROMIUM_REVISION
+                         || process.env.npm_config_puppeteer_chromium_revision
+                         || require('../package.json').puppeteer.chromium_revision
+
 var input, output
 
 program
@@ -30,8 +34,12 @@ const tempHTML = path.join(inputDir, '_temp.htm')
 
 async function main () {
   console.log('Watching ' + input + ' and its directory tree.')
+  
+  const browserFetcher = puppeteer.createBrowserFetcher();
+  const revisionInfo = browserFetcher.revisionInfo(chromiumRevision);
   const browser = await puppeteer.launch({
-    headless: true
+    headless: true,
+    executablePath: revisionInfo.executablePath
   })
   const page = await browser.newPage()
   page.on('pageerror', function (err) {

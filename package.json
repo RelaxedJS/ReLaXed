@@ -12,6 +12,9 @@
   "author": "Zulko",
   "homepage": "https://github.com/RelaxedJS",
   "license": "ISC",
+  "puppeteer": {
+    "chromium_revision": "526987"
+  },
   "dependencies": {
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.3",
