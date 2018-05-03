@@ -30,21 +30,32 @@ if (!input) {
 
 const inputPath = path.resolve(input)
 const inputDir = path.resolve(inputPath, '..')
-const inputFilename = input.substr(0, input.lastIndexOf('.'));
+const inputFilenameNoExt = path.basename(input, path.extname(input))
 
 if (!output) {
-  output = inputFilename + '.pdf'
+  output = path.join(inputDir, inputFilenameNoExt + '.pdf')
 }
 
 const outputPath = path.resolve(output)
 
-const tempHTMLPath = path.join((program.temp 
-                                && fs.existsSync(program.temp) 
-                                && fs.statSync(program.temp).isDirectory()) ? program.temp : inputDir, inputFilename + '_temp.htm')
+var tempDir
+if (program.temp) {
+  var validTempPath = fs.existsSync(program.temp) && fs.statSync(program.temp).isDirectory()
+  if (validTempPath) {
+    tempDir = path.resolve(program.temp)
+  } else {
+    console.error('Could not find specified --temp directory: ' + program.temp)
+    process.exit(1)
+  }
+} else {
+  tempDir = inputDir
+}
 
-let watchLocations = [inputDir];
+const tempHTMLPath = path.join(tempDir, inputFilenameNoExt + '_temp.htm')
+
+let watchLocations = [inputDir]
 if (program.watch) {
-  watchLocations = watchLocations.concat(program.watch);
+  watchLocations = watchLocations.concat(program.watch)
 }
 
 async function main () {
