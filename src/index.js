@@ -8,6 +8,10 @@ const path = require('path')
 const fs = require('fs')
 const converters = require('./converters.js')
 
+const chromiumRevision = process.env.PUPPETEER_CHROMIUM_REVISION
+                         || process.env.npm_config_puppeteer_chromium_revision
+                         || require('../package.json').puppeteer.chromium_revision
+
 var input, output
 
 program
@@ -60,8 +64,12 @@ if (program.watch) {
 
 async function main () {
   console.log('Watching ' + input + ' and its directory tree.')
+  
+  const browserFetcher = puppeteer.createBrowserFetcher();
+  const revisionInfo = browserFetcher.revisionInfo(chromiumRevision);
   const browser = await puppeteer.launch({
-    headless: true
+    headless: true,
+    executablePath: revisionInfo.executablePath
   })
   const page = await browser.newPage()
   page.on('pageerror', function (err) {

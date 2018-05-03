@@ -90,7 +90,7 @@ At the moment, the best solution is to install ReLaXed in an empty directory as 
 
 ```
 git clone https://github.com/RelaxedJS/ReLaXed.git .
-npm install
+export PUPPETEER_CHROMIUM_REVISION=526987 && npm install
 sudo npm link --unsafe-perm=true
 ```
 
