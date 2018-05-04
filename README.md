@@ -89,14 +89,10 @@ ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJ
 At the moment, the best solution is to install ReLaXed in an empty directory as follows:
 
 ```
-git clone https://github.com/RelaxedJS/ReLaXed.git .
-npm install
-sudo npm link --unsafe-perm=true
+npm i -g relaxedjs
 ```
 
 This provides your system with the ``relaxed`` command.
-
-Hopefully, in the future, installation will be as simple as ``npm i -g relaxedjs``, but there are known [issues](https://github.com/GoogleChrome/puppeteer/issues/375#issuecomment-363466257) with Puppeteer. In case it doesn't work for you, have a look at the [troubleshooting](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting) page. Any help towards a simpler installation procedure is welcome.
 
 
 ## Getting started
