@@ -86,13 +86,13 @@ ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJ
 
 ## Installing ReLaXed
 
-At the moment, the best solution is to install ReLaXed in an empty directory as follows:
+Install ReLaXed via [NPM](https://www.npmjs.com/):
 
 ```
 npm i -g relaxedjs
 ```
 
-This provides your system with the ``relaxed`` command.
+This will provide your system with the ``relaxed`` command. If the installation fails, refer to the [troubleshooting page](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting).
 
 
 ## Getting started
