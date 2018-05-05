@@ -59,23 +59,13 @@ if (program.watch) {
   watchLocations = watchLocations.concat(program.watch)
 }
 
-function configurePuppeteer () {
-  const config = {
-    headless: true,
-    args: []
-  }
-
-  if (!program.sandbox) {
-    config.args.push('--no-sandbox');
-  }
-
-  return config;
+const puppeteerConfig = {
+  headless: true,
+  args: program.sandbox ? ['--no-sandbox'] : []
 }
 
 async function main () {
   console.log('Watching ' + input + ' and its directory tree.')
-
-  const puppeteerConfig = configurePuppeteer();
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
   page.on('pageerror', function (err) {
