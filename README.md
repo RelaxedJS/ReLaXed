@@ -145,7 +145,7 @@ ReLaXed consists of a few lines of code binding together other software. It uses
 
 ## Contribute!
 
-ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/Zulko/relaxed) under the ISC licence. Everyone is welcome to contribute!
+ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/RelaxedJS/ReLaXed) under the ISC licence. Everyone is welcome to contribute!
 
 ## License
 
