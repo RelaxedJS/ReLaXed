@@ -89,10 +89,12 @@ async function main() {
  */
 async function convert(page) {
   console.log("Performing one-time build...");
-  await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
-    console.log(e.toString());
-    process.exit(1);
-  });
+  for (let i in [0, 1]) {
+    await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
+      console.log(e.toString());
+      process.exit(1);
+    });
+  }
   console.log("Complete.");
   process.exit(0);
 }
