@@ -17,7 +17,7 @@ program
   .option('--no-sandbox', 'disable puppeteer sandboxing')
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
-  .option('--build', 'Build only, do not watch')
+  .option('--build-once', 'Build only, do not watch')
   .action(function (inp, out) {
     input = inp
     output = out
@@ -75,7 +75,7 @@ async function main() {
     console.log('Error: ' + err.toString())
     })
   
-  if (program.build) {
+  if (program.buildOnce) {
     convert(page);
   } else {
     watch(page);
