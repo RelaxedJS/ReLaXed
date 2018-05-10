@@ -76,53 +76,77 @@ async function main() {
     })
   
   if (program.build) {
-    console.log("Performing one-time build...")
-    await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
-      console.log(e.toString())
-      process.exit(1)
-    })
-    console.log("Complete.")
-    process.exit(0)
+    convert(page);
   } else {
-    console.log('Watching ' + input + ' and its directory tree.')
-    chokidar.watch(watchLocations, {
-      awaitWriteFinish: {
-        stabilityThreshold: 50,
-        pollInterval: 100
-      }
-    }).on('change', (filepath) => {
-      if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-        '.chart.js', '.png', '.flowchart', '.flowchart.json',
-        '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
-        return
-      }
-      console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold)
-      var t0 = performance.now()
-      var taskPromise = null
-      if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-        taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
-      } else if (filepath.endsWith('.chart.js')) {
-        taskPromise = converters.chartjsToPNG(filepath, page)
-      } else if (filepath.endsWith('.mermaid')) {
-        taskPromise = converters.mermaidToSvg(filepath, page)
-      } else if (filepath.endsWith('.flowchart')) {
-        taskPromise = converters.flowchartToSvg(filepath, page)
-      } else if (filepath.endsWith('.flowchart.json')) {
-        var flowchartFile = filepath.substr(0, filepath.length - 5)
-        taskPromise = converters.flowchartToSvg(flowchartFile, page)
-      } else if (filepath.endsWith('.vegalite.json')) {
-        taskPromise = converters.vegaliteToSvg(filepath, page)
-      } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
-        converters.tableToPug(filepath)
-      }
-      if (taskPromise) {
-        taskPromise.then(function () {
-          var duration = ((performance.now() - t0) / 1000).toFixed(2)
-          console.log(`... done in ${duration}s`.magenta.bold)
-        })
-      }
-    })
+    watch(page);
   }
+}
+
+/**
+ * Perform one time build on master document
+ * 
+ * @param {puppeteer.Page} page 
+ */
+async function convert(page) {
+  console.log("Performing one-time build...");
+  await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
+    console.log(e.toString());
+    process.exit(1);
+  });
+  console.log("Complete.");
+  process.exit(0);
+}
+
+/**
+ * Watch `watchLocations` paths for changes and continuously rebuild
+ * 
+ * @param {puppeteer.Page} page 
+ */
+function watch(page) {
+  console.log('Watching ' + input + ' and its directory tree.');
+  chokidar.watch(watchLocations, {
+    awaitWriteFinish: {
+      stabilityThreshold: 50,
+      pollInterval: 100
+    }
+  }).on('change', (filepath) => {
+    if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
+      '.chart.js', '.png', '.flowchart', '.flowchart.json',
+      '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
+      return;
+    }
+    console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold);
+    var t0 = performance.now();
+    var taskPromise = null;
+    if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
+      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath);
+    }
+    else if (filepath.endsWith('.chart.js')) {
+      taskPromise = converters.chartjsToPNG(filepath, page);
+    }
+    else if (filepath.endsWith('.mermaid')) {
+      taskPromise = converters.mermaidToSvg(filepath, page);
+    }
+    else if (filepath.endsWith('.flowchart')) {
+      taskPromise = converters.flowchartToSvg(filepath, page);
+    }
+    else if (filepath.endsWith('.flowchart.json')) {
+      var flowchartFile = filepath.substr(0, filepath.length - 5);
+      taskPromise = converters.flowchartToSvg(flowchartFile, page);
+    }
+    else if (filepath.endsWith('.vegalite.json')) {
+      taskPromise = converters.vegaliteToSvg(filepath, page);
+    }
+    else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
+      converters.tableToPug(filepath);
+    }
+    if (taskPromise) {
+      taskPromise.then(function () {
+        var duration = ((performance.now() - t0) / 1000).toFixed(2);
+        console.log(`... done in ${duration}s`.magenta.bold);
+      });
+    }
+  });
 }
 
 main()
