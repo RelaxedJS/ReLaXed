@@ -10,7 +10,7 @@ const converters = require('./converters.js')
 
 var input, output
 
-const version = JSON.parse(fs.readFileSync('./package.json')).version
+const version = require('../package.json').version
 
 program
   .version(version)
