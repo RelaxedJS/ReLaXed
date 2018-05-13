@@ -10,8 +10,10 @@ const converters = require('./converters.js')
 
 var input, output
 
+const version = require('../package.json').version
+
 program
-  .version('0.0.1')
+  .version(version)
   .usage('<input> [output] [options]')
   .arguments('<input> [output] [options]')
   .option('--no-sandbox', 'disable puppeteer sandboxing')
