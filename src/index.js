@@ -65,7 +65,7 @@ const puppeteerConfig = {
   args: program.sandbox ? ['--no-sandbox'] : []
 }
 
-async function main() {
+async function main () {
   console.log("Launching...")
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
@@ -73,12 +73,12 @@ async function main() {
     console.log('Page error: ' + err.toString())
   }).on('error', function (err) {
     console.log('Error: ' + err.toString())
-    })
+  })
   
   if (program.buildOnce) {
-    convert(page);
+    convert(page)
   } else {
-    watch(page);
+    watch(page)
   }
 }
 
@@ -87,16 +87,16 @@ async function main() {
  * 
  * @param {puppeteer.Page} page 
  */
-async function convert(page) {
-  console.log("Performing one-time build...");
+async function convert (page) {
+  console.log("Performing one-time build...")
   for (let i in [0, 1]) {
     await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
-      console.log(e.toString());
-      process.exit(1);
-    });
+      console.log(e.toString())
+      process.exit(1)
+    })
   }
-  console.log("Complete.");
-  process.exit(0);
+  console.log("Complete.")
+  process.exit(0)
 }
 
 /**
@@ -104,8 +104,8 @@ async function convert(page) {
  * 
  * @param {puppeteer.Page} page 
  */
-function watch(page) {
-  console.log('Watching ' + input + ' and its directory tree.');
+function watch (page) {
+  console.log('Watching ' + input + ' and its directory tree.')
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
@@ -113,42 +113,36 @@ function watch(page) {
     }
   }).on('change', (filepath) => {
     if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-      '.chart.js', '.png', '.flowchart', '.flowchart.json',
-      '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
-      return;
+           '.chart.js', '.png', '.flowchart', '.flowchart.json',
+           '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
+      return
     }
-    console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold);
-    var t0 = performance.now();
-    var taskPromise = null;
+    console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold)
+    var t0 = performance.now()
+    var taskPromise = null
     if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath);
-    }
-    else if (filepath.endsWith('.chart.js')) {
-      taskPromise = converters.chartjsToPNG(filepath, page);
-    }
-    else if (filepath.endsWith('.mermaid')) {
-      taskPromise = converters.mermaidToSvg(filepath, page);
-    }
-    else if (filepath.endsWith('.flowchart')) {
-      taskPromise = converters.flowchartToSvg(filepath, page);
-    }
-    else if (filepath.endsWith('.flowchart.json')) {
-      var flowchartFile = filepath.substr(0, filepath.length - 5);
-      taskPromise = converters.flowchartToSvg(flowchartFile, page);
-    }
-    else if (filepath.endsWith('.vegalite.json')) {
-      taskPromise = converters.vegaliteToSvg(filepath, page);
-    }
-    else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
-      converters.tableToPug(filepath);
+      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
+    } else if (filepath.endsWith('.chart.js')) {
+      taskPromise = converters.chartjsToPNG(filepath, page)
+    } else if (filepath.endsWith('.mermaid')) {
+      taskPromise = converters.mermaidToSvg(filepath, page)
+    } else if (filepath.endsWith('.flowchart')) {
+      taskPromise = converters.flowchartToSvg(filepath, page)
+    } else if (filepath.endsWith('.flowchart.json')) {
+      var flowchartFile = filepath.substr(0, filepath.length - 5)
+      taskPromise = converters.flowchartToSvg(flowchartFile, page)
+    } else if (filepath.endsWith('.vegalite.json')) {
+      taskPromise = converters.vegaliteToSvg(filepath, page)
+    } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
+      converters.tableToPug(filepath)
     }
     if (taskPromise) {
       taskPromise.then(function () {
-        var duration = ((performance.now() - t0) / 1000).toFixed(2);
-        console.log(`... done in ${duration}s`.magenta.bold);
-      });
+        var duration = ((performance.now() - t0) / 1000).toFixed(2)
+        console.log(`... done in ${duration}s`.magenta.bold)
+      })
     }
-  });
+  })
 }
 
 main()
