@@ -86,7 +86,7 @@ ReLaXed has support for Markdown, LaTeX-style mathematical equations (via [MathJ
 
 ## Installing ReLaXed
 
-Install ReLaXed via [NPM](https://www.npmjs.com/):
+Install ReLaXed via [NPM](https://www.npmjs.com/) with this command (do not use ``sudo``):
 
 ```
 npm i -g relaxedjs

@@ -1,21 +1,21 @@
 const fs = require('fs')
 const util = require('util')
-const mjpage = require('mathjax-node-page')
 const pug = require('pug')
 const writeFile = util.promisify(fs.writeFile)
 const cheerio = require('cheerio')
 const path = require('path')
 const csv = require('csvtojson')
-const html2jade = require('html2jade');
-
-function formatTemplate (tempName, data) {
-  return pug.renderFile(path.join(__dirname, 'templates', tempName + '.pug'), data)
-}
-
+const html2jade = require('html2jade')
+const colors = require('colors')
+const { performance } = require('perf_hooks')
+const katex = require('katex')
+const sass = require('node-sass')
+const SVGO = require('svgo')
+const utils = require('./utils.js')
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
-  var html = formatTemplate('mermaid', { mermaidSpec })
+  var html = utils.formateTemplate('mermaid', { mermaidSpec })
   await page.setContent(html)
   await page.waitForSelector('#graph svg')
   var svg = await page.evaluate(function () {
@@ -41,8 +41,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
       flowchartConf = fs.readFileSync(myPath, 'utf8')
     }
   }
-  var html = formatTemplate('flowchart', { flowchartSpec, flowchartConf })
-  // console.log(html)
+  var html = utils.formateTemplate('flowchart', { flowchartSpec, flowchartConf })
   await page.setContent(html)
   await page.waitForSelector('#chart svg')
   var svg = await page.evaluate(function () {
@@ -59,10 +58,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
 
 exports.vegaliteToSvg = async function (vegalitePath, page) {
   var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
-  var html = formatTemplate('vegalite', { vegaliteSpec })
-  // var tempHTML = vegalitePath + '.htm'
-  // await writeFile(tempHTML, html)
-  // await page.goto('file:' + tempHTML);
+  var html = utils.formateTemplate('vegalite', { vegaliteSpec })
   await page.setContent(html)
   await page.waitForSelector('#vis svg')
   var svg = await page.evaluate(function () {
@@ -75,6 +71,30 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
   await writeFile(svgPath, svg)
 }
 
+exports.svgToOptimizedSvg = async function (svgPath) {
+  var svgdata = fs.readFileSync(svgPath, 'utf8')
+  var svgo = new SVGO({
+    plugins: [{
+      removeNonInheritableGroupAttrs: false
+    }, {
+      cleanupAttrs: false
+    }, {
+      moveGroupAttrsToElems: false
+    }, {
+      collapseGroups: false
+    }, {
+      removeUnknownsAndDefaults: false
+    }, {
+      cleanupIDs: {
+        prefix: path.basename(svgPath)
+      }
+    }
+  ]
+  })
+  var svgoPath = svgPath.substr(0, svgPath.length - '.o.svg'.length) + '_optimized.svg'
+  var svgoData = await svgo.optimize(svgdata)
+  await writeFile(svgoPath, svgoData.data)
+}
 
 exports.tableToPug = function (tablePath) {
   var extension, header
@@ -93,7 +113,7 @@ exports.tableToPug = function (tablePath) {
           extension = '.table.csv'
           header = null
         }
-        var html = formatTemplate('table', { header: header, tbody: rows })
+        var html = utils.formatTemplate('table', { header: header, tbody: rows })
         var pugPath = tablePath.substr(0, tablePath.length - extension.length) + '.pug'
         html2jade.convertHtml(html, {bodyless: true}, function (err, jade) {
           if (err) {
@@ -105,54 +125,43 @@ exports.tableToPug = function (tablePath) {
     })
 }
 
-function parseDataUrl (dataUrl) {
-  // from https://intoli.com/blog/saving-images/
-  const matches = dataUrl.match(/^data:(.+);base64,(.+)$/);
-  if (matches.length !== 3) {
-    throw new Error('Could not parse data URL.');
-  }
-  return { mime: matches[1], buffer: Buffer.from(matches[2], 'base64') };
-};
-
 exports.chartjsToPNG = async function (chartjsPath, page) {
   var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
-  var html = formatTemplate('chartjs', { chartSpec })
+  var html = utils.formateTemplate('chartjs', { chartSpec })
   var tempHTML = chartjsPath + '.htm'
   await writeFile(tempHTML, html)
-  // await page.goto('file:' + tempHTML);
   await page.setContent(html)
   await page.waitForFunction(() => window.pngData)
   const dataUrl = await page.evaluate(() => window.pngData)
-  const { buffer } = parseDataUrl(dataUrl)
+  const { buffer } = utils.parseDataUrl(dataUrl)
   var pngPath = chartjsPath.substr(0, chartjsPath.length - '.chart.js'.length) + '.png'
   await writeFile(pngPath, buffer, 'base64')
 }
 
-function asyncMathjax (html) {
-  return new Promise(resolve => {
-    mjpage.mjpage(html, {
-      format: ['TeX']
-    }, {
-      mml: true,
-      css: true,
-      html: true
-    }, response => resolve(response))
-  })
-}
-
-function getMatch (string, query) {
-  var result = string.match(query)
-  if (result) {
-    result = result[1]
-  }
-  return result
-}
+const builtinMixins = fs.readFileSync(path.join(__dirname, 'builtin_mixins.pug'))
 
 exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, outputPath) {
   var html
+  var t0 = performance.now()
+
   if (masterPath.endsWith('.pug')) {
     try {
-      html = pug.renderFile(masterPath)
+      var masterPug = fs.readFileSync(masterPath, 'utf8')
+
+      html = pug.render(builtinMixins + '\n' + masterPug, {
+        filename: masterPath,
+        fs: fs,
+        cheerio: cheerio,
+        basedir: path.resolve(masterPath, '..') + '/',
+        filters: {
+          katex: (text, options) => katex.renderToString(text),
+          scss: function (text, options) {
+            var file = options.filename
+            options = file.endsWith('scss') ? { file } : {data: text}
+            return sass.renderSync(options).css.toString('utf8')
+          }
+        }
+      })
     } catch (error) {
       console.log(error.message)
       console.error('There was a Pug error (see above)'.red)
@@ -161,15 +170,34 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   } else {
     html = fs.readFileSync(masterPath, 'utf8')
   }
-  html = await asyncMathjax(html)
-  var parsedHtml = cheerio.load(html)
-  html = parsedHtml.html() // adds html, body, head.
-  var headerTemplate = parsedHtml('template.header').html()
-  var footerTemplate = parsedHtml('template.footer').html()
-  // await page.setContent(html)
+  if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
+    html = await utils.asyncMathjax(html)
+  }
+
+  var headerTemplate = ''
+  var footerTemplate = ''
+  var pageHeaderIndex = html.indexOf('id="page-header"')
+  var pageFooterIndex = html.indexOf('id="page-footer"')
+  if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
+    var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
+    var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
+    headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
+    footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
+  }
+  html = '<html><body>' + html + '</body></html>'
   await writeFile(tempHTML, html)
-  await page.goto('file:' + tempHTML, {waitUntil: 'networkidle2'});
-  // await page.waitForNavigation({ waitUntil: 'networkidle2' })
+
+  var tHTML = performance.now()
+  console.log(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`.magenta)
+
+  await page.goto('file:' + tempHTML, {waitUntil: ['load', 'domcontentloaded']})
+  var tLoad = performance.now()
+  console.log(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`.magenta)
+
+  await utils.waitForNetworkIdle(page, 200)
+  var tNetwork = performance.now()
+  console.log(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`.magenta)
+
   var options = {
     path: outputPath,
     displayHeaderFooter: headerTemplate || footerTemplate,
@@ -177,17 +205,20 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     footerTemplate,
     printBackground: true
   }
-  var width = getMatch(html, /-relaxed-page-width: (\S+);/m)
+  var width = utils.getMatch(html, /-relaxed-page-width: (\S+);/m)
   if (width) {
     options.width = width
   }
-  var height = getMatch(html, /-relaxed-page-height: (\S+);/m)
+  var height = utils.getMatch(html, /-relaxed-page-height: (\S+);/m)
   if (height) {
     options.height = height
   }
-  var size = getMatch(html, /-relaxed-page-size: (\S+);/m)
+  var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
   if (size) {
     options.size = size
   }
   await page.pdf(options)
+
+  var tPDF = performance.now()
+  console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
 }

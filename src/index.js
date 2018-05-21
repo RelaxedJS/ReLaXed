@@ -70,6 +70,7 @@ async function main () {
   console.log('Watching ' + input + ' and its directory tree.')
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
+  // await page.pdf()
   page.on('pageerror', function (err) {
     console.log('Page error: ' + err.toString())
   }).on('error', function (err) {
@@ -90,9 +91,7 @@ async function main () {
     console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold)
     var t0 = performance.now()
     var taskPromise = null
-    if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
-    } else if (filepath.endsWith('.chart.js')) {
+    if (filepath.endsWith('.chart.js')) {
       taskPromise = converters.chartjsToPNG(filepath, page)
     } else if (filepath.endsWith('.mermaid')) {
       taskPromise = converters.mermaidToSvg(filepath, page)
@@ -105,6 +104,10 @@ async function main () {
       taskPromise = converters.vegaliteToSvg(filepath, page)
     } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
       converters.tableToPug(filepath)
+    } else if (filepath.endsWith('.o.svg')) {
+      taskPromise = converters.svgToOptimizedSvg(filepath)
+    } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
+      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
     }
     if (taskPromise) {
       taskPromise.then(function () {
