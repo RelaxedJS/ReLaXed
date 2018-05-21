@@ -1,9 +1,11 @@
 language: node_js
+
 node_js:
   - "stable"
 
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install imagemagick ghostscript poppler-utils
+
 before_script:
   - npm link
