@@ -28,7 +28,7 @@ program
 program.parse(process.argv)
 
 if (!input) {
-  console.error('Please specifiy an input file');
+  console.error('ReLaXed error: no input file specified'.red);
   process.exit(1)
 }
 
@@ -48,7 +48,8 @@ if (program.temp) {
   if (validTempPath) {
     tempDir = path.resolve(program.temp)
   } else {
-    console.error('Could not find specified --temp directory: ' + program.temp)
+    console.error(('ReLaXed error: Could not find specified --temp directory: ' +
+                   program.temp).red)
     process.exit(1)
   }
 } else {
@@ -68,7 +69,7 @@ const puppeteerConfig = {
 }
 
 async function main () {
-  console.log("Launching...")
+  console.log('Launching ReLaXed...'.bold.magenta)
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
   // await page.pdf()
@@ -77,7 +78,7 @@ async function main () {
   }).on('error', function (err) {
     console.log('Error: ' + err.toString())
   })
-  
+
   if (program.buildOnce) {
     convert(page)
   } else {
@@ -87,28 +88,26 @@ async function main () {
 
 /**
  * Perform one time build on master document
- * 
- * @param {puppeteer.Page} page 
+ *
+ * @param {puppeteer.Page} page
  */
 async function convert (page) {
-  console.log("Performing one-time build...")
-  for (let i in [0, 1]) {
-    await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
-      console.log(e.toString())
-      process.exit(1)
-    })
-  }
-  console.log("Complete.")
+  console.log('Building the document...'.bold.magenta)
+  await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
+    console.log(e.toString())
+    process.exit(1)
+  })
+  console.log('... done !'.bold.magenta)
   process.exit(0)
 }
 
 /**
  * Watch `watchLocations` paths for changes and continuously rebuild
- * 
- * @param {puppeteer.Page} page 
+ *
+ * @param {puppeteer.Page} page
  */
 function watch (page) {
-  console.log('Watching ' + input + ' and its directory tree.')
+  console.log('Ready. Watching ' + input + ' and its directory tree.'.magenta)
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,

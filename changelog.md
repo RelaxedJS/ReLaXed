@@ -12,6 +12,7 @@ Breaking API changes:
 
 New features:
 
+- Command-line parameter ``--build-once`` for single builds (instead of watching)
 - New exposed javascript globals in templates:
   - Packages: ``fs``, ``cheerio``
   - Variables: ``basedir`` (indicating the base path of the master file)
