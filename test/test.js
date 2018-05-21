@@ -9,7 +9,7 @@ describe('Sample tests', function() {
   var tests = [
     {
       sampleName: 'basic_example',
-      timeout: 4000
+      timeout: 10000
     }
   ]
   tests.forEach(function(test) {
