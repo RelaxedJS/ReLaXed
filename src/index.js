@@ -19,6 +19,7 @@ program
   .option('--no-sandbox', 'disable puppeteer sandboxing')
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
+  .option('--build-once', 'Build only, do not watch')
   .action(function (inp, out) {
     input = inp
     output = out
@@ -67,7 +68,7 @@ const puppeteerConfig = {
 }
 
 async function main () {
-  console.log('Watching ' + input + ' and its directory tree.')
+  console.log("Launching...")
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
   // await page.pdf()
@@ -76,7 +77,38 @@ async function main () {
   }).on('error', function (err) {
     console.log('Error: ' + err.toString())
   })
+  
+  if (program.buildOnce) {
+    convert(page)
+  } else {
+    watch(page)
+  }
+}
 
+/**
+ * Perform one time build on master document
+ * 
+ * @param {puppeteer.Page} page 
+ */
+async function convert (page) {
+  console.log("Performing one-time build...")
+  for (let i in [0, 1]) {
+    await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
+      console.log(e.toString())
+      process.exit(1)
+    })
+  }
+  console.log("Complete.")
+  process.exit(0)
+}
+
+/**
+ * Watch `watchLocations` paths for changes and continuously rebuild
+ * 
+ * @param {puppeteer.Page} page 
+ */
+function watch (page) {
+  console.log('Watching ' + input + ' and its directory tree.')
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
