@@ -63,3 +63,10 @@ typings/
 
 # next.js build output
 .next
+
+test/samples/*/master.pdf
+test/samples/*/master.png
+test/samples/*/diff.png
+test/samples/*/master_temp.htm
+
+package-lock.json
