@@ -149,6 +149,8 @@ ReLaXed consists of a few lines of code binding together other software. It uses
 
 ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/RelaxedJS/ReLaXed) under the ISC licence. Everyone is welcome to contribute!
 
+For bugs and feature requests, open a Github issue. For support or Pug/HTML-related questions, ask on Stackoverflow or on the brand new [reddit/r/relaxedjs](https://www.reddit.com/r/relaxedjs/) forum, which can be used for any kind of discussion.
+
 ## License
 
 [ISC](https://github.com/RelaxedJS/ReLaXed/blob/master/LICENCE.txt)
