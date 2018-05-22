@@ -1,5 +1,13 @@
 # Changelog
 
+## v 0.1.5
+
+- Some console output fixes
+- Now avoiding new renderings when already busy. 
+- New "built-in" mixin ``stepsSVG`` for including progressive
+  (i.e. animated) SVGs into slides
+- New command-line utility ``pretty-pdf-thumbnail`` shipped with ReLaXed.
+
 ## v 0.1.4
 
 Important release with speed and features improvements.
@@ -16,8 +24,6 @@ New features:
 - New exposed javascript globals in templates:
   - Packages: ``fs``, ``cheerio``
   - Variables: ``basedir`` (indicating the base path of the master file)
--  New "built-in" mixin ``stepsSVG`` for including progressive
-   (i.e. animated) SVGs into slides
 - Experimental Katex filter now available
 - Files with extension ``.o.svg`` are automatically converted to optimized
   svgs (``*_optimized.svg``).

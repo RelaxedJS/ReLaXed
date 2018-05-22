@@ -106,20 +106,32 @@ async function convert (page) {
  *
  * @param {puppeteer.Page} page
  */
+
 function watch (page) {
-  console.log('Ready. Watching ' + input + ' and its directory tree.'.magenta)
+  console.log(`\nNow waiting for changes in ${input.underline} and its directory`.magenta)
+  var globals = {
+    busy: false
+  }
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
       pollInterval: 100
     }
   }).on('change', (filepath) => {
+
     if (!(['.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
            '.chart.js', '.png', '.flowchart', '.flowchart.json',
            '.vegalite.json', '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) {
       return
     }
-    console.log(`\nProcessing detected change in ${filepath.replace(inputDir, '')}...`.magenta.bold)
+    var shortFileName = filepath.replace(inputDir, '')
+    if (globals.busy) {
+      console.log(`( detected change in ${shortFileName}, but too busy right now )`.yellow)
+      return
+    }
+    console.log(`\nProcessing detected change in ${shortFileName}...`.magenta.bold)
+    globals.busy = true
+
     var t0 = performance.now()
     var taskPromise = null
     if (filepath.endsWith('.chart.js')) {
@@ -143,9 +155,14 @@ function watch (page) {
     if (taskPromise) {
       taskPromise.then(function () {
         var duration = ((performance.now() - t0) / 1000).toFixed(2)
-        console.log(`... done in ${duration}s`.magenta.bold)
+        console.log(`... Done in ${duration}s`.magenta.bold)
+        globals.busy = false
       })
+    } else {
+      globals.busy = false
     }
+
+
   })
 }
 

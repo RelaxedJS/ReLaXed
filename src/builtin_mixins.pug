@@ -1,0 +1,23 @@
+mixin stepSVG(step, path)
+    //- Allows to import progressive (=animated) SVGs into slideshow.
+    //- If a SVG has elements with a ``steps`` attributes, then
+    //- ``+stepSVG(4, 'my.svg')`` with only display this element if 4 is
+    //- included into ``steps``.
+    
+    -
+      var text = fs.readFileSync(basedir + path, 'utf8')
+      var parsedHtml = cheerio.load(text)
+      parsedHtml('*[steps]').each(function (i, c) {
+        var steps = c.attribs.steps
+        if (steps.indexOf('--') > -1) {
+           var [min, max] = steps.split("--")
+           min =  (min === '') ? 0 : parseInt(min)
+           max =  (max === '') ? 10000 : parseInt(max)
+           if ((step < min) || (step > max)) {
+             c.attribs['style'] = 'display: none;'
+           }
+        } else if (c.attribs.steps.split(',').indexOf(step.toString()) === -1) {
+          c.attribs['style'] = 'display: none;'
+        }
+      })
+    div(width="100%")!= parsedHtml.html()
