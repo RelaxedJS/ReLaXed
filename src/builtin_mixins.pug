@@ -1,3 +1,36 @@
+mixin cite(key, number=null)
+    span(data-key=key, data-page=number).citation
+
+mixin bibliography(format)
+    h1 Bibliography
+    div(data-format=format)#bibliography
+    script.
+        const Cite = require('citation-js')
+        var data = new Cite()
+        var bibliography = document.getElementById('bibliography')
+        for (var element of document.getElementsByClassName('citation')) {
+            let key = element.getAttribute('data-key') 
+            let pg = element.getAttribute('data-page') 
+            data.add(key)
+            for (var cite of data.data) {
+                if (cite.id == key) {
+                    if(pg != null) {
+                        element.innerHTML = `(${cite.author[0].family}, ${cite.issued["date-parts"][0][0]}, p. ${pg})`
+                    } else {
+                        element.innerHTML = `(${cite.author[0].family}, ${cite.issued["date-parts"][0][0]})`
+                    }
+                }
+            }
+        }
+        var output = data.get({
+            format: 'string',
+            type: 'html',
+            style: bibliography.getAttribute('data-format'),
+            lange: 'en-US'
+        })
+
+        bibliography.innerHTML = output
+        
 mixin stepSVG(step, path)
     //- Allows to import progressive (=animated) SVGs into slideshow.
     //- If a SVG has elements with a ``steps`` attributes, then

@@ -184,7 +184,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
     footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
   }
-  html = '<html><body>' + html + '</body></html>'
+  html = `<html><body><script src='https://cdn.rawgit.com/larsgw/citation.js/archive/citation.js/citation-0.3.4.min.js'></script>${html}</body></html>`
   await writeFile(tempHTML, html)
 
   var tHTML = performance.now()
