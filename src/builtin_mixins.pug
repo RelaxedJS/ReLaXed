@@ -8,16 +8,16 @@ mixin bibliography(format)
         const Cite = require('citation-js')
         var data = new Cite()
         var bibliography = document.getElementById('bibliography')
-        for (var i of document.getElementsByClassName('citation')) {
-            let key = i.getAttribute('data-key') 
-            let pg = i.getAttribute('data-page') 
+        for (var el of document.getElementsByClassName('ckeyation')) {
+            let key = el.getAttribute('data-key') 
+            let pg = el.getAttribute('data-page') 
             data.add(key)
-            for (var j of data.data) {
-                if (j.id == key) {
+            for (var cite of data.data) {
+                if (cite.id == key) {
                     if(pg != null) {
-                        i.innerHTML = `(${j.author[0].family}, ${j.issued["date-parts"][0][0]}, p. ${pg})`
+                        el.innerHTML = `(${cite.author[0].family}, ${cite.issued["date-parts"][0][0]}, p. ${pg})`
                     } else {
-                        i.innerHTML = `(${j.author[0].family}, ${j.issued["date-parts"][0][0]})`
+                        el.innerHTML = `(${cite.author[0].family}, ${cite.issued["date-parts"][0][0]})`
                     }
                 }
             }
