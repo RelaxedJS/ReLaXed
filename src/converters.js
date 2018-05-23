@@ -246,7 +246,7 @@ function renderBibliography(html) {
     const data = new Cite()
     for(var cite of citations) {
       let key = cite.getAttribute('data-key')
-      let page = cite.getAttribute('data-key')
+      let page = cite.getAttribute('data-page')
       data.add(key)
       for(var datum of data.data) {
         if (datum.id == key) {
