@@ -8,7 +8,7 @@ mixin bibliography(format)
         const Cite = require('citation-js')
         var data = new Cite()
         var bibliography = document.getElementById('bibliography')
-        for (var el of document.getElementsByClassName('ckeyation')) {
+        for (var el of document.getElementsByClassName('key')) {
             let key = el.getAttribute('data-key') 
             let pg = el.getAttribute('data-page') 
             data.add(key)
