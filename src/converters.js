@@ -175,6 +175,8 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     html = await utils.asyncMathjax(html)
   }
 
+  html = renderBibliography(html).replace('<html><head></head><body>', '').replace('</body></html>', '')
+
   var headerTemplate = ''
   var footerTemplate = ''
   var pageHeaderIndex = html.indexOf('id="page-header"')
@@ -186,8 +188,6 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
   }
   html = `<html><body>${html}</body></html>`
-
-  html = renderBibliography(html)
 
   await writeFile(tempHTML, html)
 
@@ -232,7 +232,7 @@ function renderBibliography(html) {
 
   const window = dom.window
   const document = dom.window.document
-
+  
   var citations = document.getElementsByClassName('citation')
   var bibliography = document.getElementById('bibliography')
 
