@@ -236,7 +236,13 @@ function renderBibliography(html) {
   var citations = document.getElementsByClassName('citation')
   var bibliography = document.getElementById('bibliography')
 
-  if (citations != {}) {
+  if(bibliography) {
+    console.log(true)
+  } else {
+    console.log(false)
+  }
+
+  if (citations.length > 0) {
     const data = new Cite()
     for(var cite of citations) {
       let key = cite.getAttribute('data-key')
@@ -253,7 +259,7 @@ function renderBibliography(html) {
         }
       }
     }
-    if (bibliography != {}) {
+    if (bibliography) {
       const output = data.get({
         format: 'string',
         type: 'html',
