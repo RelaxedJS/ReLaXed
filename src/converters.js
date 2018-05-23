@@ -12,6 +12,8 @@ const katex = require('katex')
 const sass = require('node-sass')
 const SVGO = require('svgo')
 const utils = require('./utils.js')
+const Cite = require('citation-js')
+const { JSDOM } = require('jsdom')
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
@@ -27,7 +29,6 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
   var svgPath = mermaidPath.substr(0, mermaidPath.lastIndexOf('.')) + '.svg'
   await writeFile(svgPath, svg)
 }
-
 
 exports.flowchartToSvg = async function (flowchartPath, page) {
   var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
@@ -184,7 +185,10 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
     footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
   }
-  html = `<html><body><script src='https://cdn.rawgit.com/larsgw/citation.js/archive/citation.js/citation-0.3.4.min.js'></script>${html}</body></html>`
+  html = `<html><body>${html}</body></html>`
+
+  html = renderBibliography(html)
+
   await writeFile(tempHTML, html)
 
   var tHTML = performance.now()
@@ -221,4 +225,45 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
   var tPDF = performance.now()
   console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
+}
+
+function renderBibliography(html) {
+  const dom = new JSDOM(html)
+
+  const window = dom.window
+  const document = dom.window.document
+
+  var citations = document.getElementsByClassName('citation')
+  var bibliography = document.getElementById('bibliography')
+
+  if (citations != {}) {
+    const data = new Cite()
+    for(var cite of citations) {
+      let key = cite.getAttribute('data-key')
+      let page = cite.getAttribute('data-key')
+      data.add(key)
+      for(var datum of data.data) {
+        if (datum.id == key) {
+          if(page != '') {
+            cite.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
+          } else {
+            cite.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+          }
+          break
+        }
+      }
+    }
+    if (bibliography != {}) {
+      const output = data.get({
+        format: 'string',
+        type: 'html',
+        style: bibliography.getAttribute('data-style'),
+        lang: 'en-US'
+      })
+      bibliography.innerHTML = output
+    }
+    html = dom.serialize()
+  }
+
+  return html
 }
