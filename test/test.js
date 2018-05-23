@@ -10,6 +10,10 @@ describe('Sample tests', function() {
     {
       sampleName: 'basic_example',
       timeout: 10000
+    },
+    {
+      sampleName: 'bibliography_example',
+      timeout: 10000
     }
   ]
   tests.forEach(function(test) {

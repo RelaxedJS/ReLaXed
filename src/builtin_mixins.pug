@@ -1,0 +1,32 @@
+mixin cite(key, number=null)
+    span(data-key=key, data-page=number).citation
+
+mixin bibliography(format)
+    h1 Bibliography
+    div(data-format=format)#bibliography
+    script.
+        const Cite = require('citation-js')
+        var data = new Cite()
+        var bibliography = document.getElementById('bibliography')
+        for (var i of document.getElementsByClassName('citation')) {
+            let key = i.getAttribute('data-key') 
+            let pg = i.getAttribute('data-page') 
+            data.add(key)
+            for (var j of data.data) {
+                if (j.id == key) {
+                    if(pg != null) {
+                        i.innerHTML = `(${j.author[0].family}, ${j.issued["date-parts"][0][0]}, p. ${pg})`
+                    } else {
+                        i.innerHTML = `(${j.author[0].family}, ${j.issued["date-parts"][0][0]})`
+                    }
+                }
+            }
+        }
+        var output = data.get({
+            format: 'string',
+            type: 'html',
+            style: bibliography.getAttribute('data-format'),
+            lange: 'en-US'
+        })
+
+        bibliography.innerHTML = output

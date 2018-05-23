@@ -21,13 +21,13 @@
     "html2jade": "^0.8.6",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.1.0",
-    "svgo": "^1.0.5",
     "katex": "^0.9.0",
     "mathjax-node-page": "^2.0.0",
     "mermaid": "^8.0.0-rc.8",
     "node-sass": "^4.9.0",
     "pug": "^2.0.3",
-    "puppeteer": "^1.3.0"
+    "puppeteer": "^1.3.0",
+    "svgo": "^1.0.5"
   },
   "devDependencies": {
     "mocha": "^5.2.0",
