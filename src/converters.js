@@ -173,35 +173,6 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
     html = await utils.asyncMathjax(html)
   }
-  
-  // const regexCheck = /id="page-header"|id="page-footer"|class="citation"/g
-
-  // var cheeriosLoaded = false
-
-  // var headerTemplate = ''
-  // var footerTemplate = ''
-  // var pageHeaderIndex = html.indexOf('id="page-header"')
-  // var pageFooterIndex = html.indexOf('id="page-footer"')
-  // if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
-  // if (regexCheck.test(html)) {
-  //   cheeriosLoaded = true
-  //   var $ = cheerio.load(html)
-  
-    // renderBibliography($)
-    // var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
-    // var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
-    // headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
-    // footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
-
-    // Identical functionality to commented code above. A single instance of cheerio to share and manipulate
-    //   before rendering back to html
-  //   headerTemplate = $('#page-header').html() || '<span></span>'
-  //   footerTemplate = $('#page-footer').html() || '<span></span>'
-  // }
-
-  // if(cheeriosLoaded) {
-  //   html = $.html()
-  // }
 
   html = `<html><body>${html}</body></html>`
 
@@ -289,6 +260,10 @@ async function renderBibliography(page) {
     })
   })
 
+  if (values == false) {
+    return false
+  }
+
   values.forEach(val => data.add(val))
 
   var result = await page.$$eval('.citation', (nodes, data) => {
@@ -317,6 +292,10 @@ async function renderBibliography(page) {
     })
   })
 
+  if (style == false) {
+    return false
+  }
+
   const output = data.get({
     format: 'string',
     type: 'html',
@@ -332,37 +311,3 @@ async function renderBibliography(page) {
     resolve(true)
   })
 }
-
-// function renderBibliography($) {
-
-//   var citations = $('.citation')
-//   var bibliography = $('#bibliography')
-  
-//   if (citations.length > 0) {
-//     const data = new Cite()
-//     citations.each(function(index, value) {
-//       let key = $(this).attr('data-key')
-//       let page = $(this).attr('data-page')
-//       data.add(key)
-//         for (var datum of data.data) {
-//         if (datum.id == key) {
-//             if (page != '') {
-//               $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`)
-//           } else {
-//               $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`)
-//           }
-//           break
-//         }
-//       }
-//     })
-//     if (bibliography) {
-//       const output = data.get({
-//         format: 'string',
-//         type: 'html',
-//         style: bibliography.attr('data-style'),
-//         lang: 'en-US'
-//       })
-//       bibliography.html(output)
-//     }
-//   }
-// }
