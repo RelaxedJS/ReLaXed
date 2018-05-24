@@ -2,7 +2,7 @@ const fs = require('fs')
 const util = require('util')
 const pug = require('pug')
 const writeFile = util.promisify(fs.writeFile)
-// const cheerio = require('cheerio')
+const cheerio = require('cheerio')
 const path = require('path')
 const csv = require('csvtojson')
 const html2jade = require('html2jade')
@@ -151,7 +151,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
       html = pug.render(builtinMixins + '\n' + masterPug, {
         filename: masterPath,
         fs: fs,
-        // cheerio: cheerio,
+        cheerio: cheerio,
         basedir: path.dirname(masterPath),
         filters: {
           katex: (text, options) => katex.renderToString(text),
