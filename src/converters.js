@@ -2,7 +2,7 @@ const fs = require('fs')
 const util = require('util')
 const pug = require('pug')
 const writeFile = util.promisify(fs.writeFile)
-const cheerio = require('cheerio')
+// const cheerio = require('cheerio')
 const path = require('path')
 const csv = require('csvtojson')
 const html2jade = require('html2jade')
@@ -151,7 +151,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
       html = pug.render(builtinMixins + '\n' + masterPug, {
         filename: masterPath,
         fs: fs,
-        cheerio: cheerio,
+        // cheerio: cheerio,
         basedir: path.dirname(masterPath),
         filters: {
           katex: (text, options) => katex.renderToString(text),
@@ -176,18 +176,18 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   
   const regexCheck = /id="page-header"|id="page-footer"|class="citation"/g
 
-  var cheeriosLoaded = false
+  // var cheeriosLoaded = false
 
-  var headerTemplate = ''
-  var footerTemplate = ''
+  // var headerTemplate = ''
+  // var footerTemplate = ''
   // var pageHeaderIndex = html.indexOf('id="page-header"')
   // var pageFooterIndex = html.indexOf('id="page-footer"')
   // if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
-  if (regexCheck.test(html)) {
-    cheeriosLoaded = true
-    var $ = cheerio.load(html)
+  // if (regexCheck.test(html)) {
+  //   cheeriosLoaded = true
+  //   var $ = cheerio.load(html)
   
-    renderBibliography($)
+    // renderBibliography($)
     // var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
     // var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
     // headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
@@ -195,13 +195,13 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     // Identical functionality to commented code above. A single instance of cheerio to share and manipulate
     //   before rendering back to html
-    headerTemplate = $('#page-header').html() || '<span></span>'
-    footerTemplate = $('#page-footer').html() || '<span></span>'
-  }
+  //   headerTemplate = $('#page-header').html() || '<span></span>'
+  //   footerTemplate = $('#page-footer').html() || '<span></span>'
+  // }
 
-  if(cheeriosLoaded) {
-    html = $.html()
-  }
+  // if(cheeriosLoaded) {
+  //   html = $.html()
+  // }
 
   html = `<html><body>${html}</body></html>`
 
@@ -217,6 +217,11 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   await utils.waitForNetworkIdle(page, 200)
   var tNetwork = performance.now()
   console.log(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`.magenta)
+
+  var headerFooter = await getHeaderFooter(page)
+
+  var headerTemplate = headerFooter.head
+  var footerTemplate = headerFooter.foot
 
   var options = {
     path: outputPath,
@@ -237,42 +242,127 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   if (size) {
     options.size = size
   }
+
+  await renderBibliography(page)
+  
   await page.pdf(options)
 
   var tPDF = performance.now()
   console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
 }
 
-function renderBibliography($) {
-
-  var citations = $('.citation')
-  var bibliography = $('#bibliography')
+async function getHeaderFooter(page) {
+  var head = await page.$eval('#page-header', e => e.outerHTML)
+    .catch(e => '')
+  var foot = await page.$eval('#page-footer', e => e.outerHTML)
+    .catch(e => '')
   
-  if (citations.length > 0) {
-    const data = new Cite()
-    citations.each(function(index, value) {
-      let key = $(this).attr('data-key')
-      let page = $(this).attr('data-page')
-      data.add(key)
-        for (var datum of data.data) {
+  if(head != '' && foot == '') {
+    foot = '<span></span>'
+  }
+  if(foot != '' && head == '') {
+    head = '<span></span>'
+  }
+  
+  return new Promise((resolve, reject) => {
+    resolve({
+      head: head,
+      foot: foot
+    })
+  })
+}
+
+async function renderBibliography(page) {
+  const data = new Cite()
+
+  var values = await page.$$eval('.citation', nodes => {
+    var vals = nodes.map(node => {
+      return node.getAttribute('data-key')
+    })
+    return new Promise((resolve, reject) => {
+      resolve(vals)
+    })
+  }).catch(e => {
+    // Error occurs because there are no citations
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  values.forEach(val => data.add(val))
+
+  var result = await page.$$eval('.citation', (nodes, data) => {
+    for (var element of nodes) {
+      let key = element.getAttribute('data-key')
+      let page = element.getAttribute('data-page')
+      for (var datum of data) {
         if (datum.id == key) {
-            if (page != '') {
-              $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`)
+          if (page != '') {
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
           } else {
-              $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`)
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
           }
           break
         }
       }
-    })
-    if (bibliography) {
-      const output = data.get({
-        format: 'string',
-        type: 'html',
-        style: bibliography.attr('data-style'),
-        lang: 'en-US'
-      })
-      bibliography.html(output)
     }
-  }
+  }, data.data)
+
+  var style = await page.$eval('#bibliography', element => {
+    return element.getAttribute('data-style')
+  }).catch(e => {
+    // Error occurs because there is no bibliography
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  const output = data.get({
+    format: 'string',
+    type: 'html',
+    style: style,
+    lang: 'en-US'
+  })
+
+  var final = await page.$eval('#bibliography', (element, data) => {
+    element.innerHTML = data
+  }, output)
+
+  return new Promise((resolve, reject) => {
+    resolve(true)
+  })
 }
+
+// function renderBibliography($) {
+
+//   var citations = $('.citation')
+//   var bibliography = $('#bibliography')
+  
+//   if (citations.length > 0) {
+//     const data = new Cite()
+//     citations.each(function(index, value) {
+//       let key = $(this).attr('data-key')
+//       let page = $(this).attr('data-page')
+//       data.add(key)
+//         for (var datum of data.data) {
+//         if (datum.id == key) {
+//             if (page != '') {
+//               $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`)
+//           } else {
+//               $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`)
+//           }
+//           break
+//         }
+//       }
+//     })
+//     if (bibliography) {
+//       const output = data.get({
+//         format: 'string',
+//         type: 'html',
+//         style: bibliography.attr('data-style'),
+//         lang: 'en-US'
+//       })
+//       bibliography.html(output)
+//     }
+//   }
+// }
