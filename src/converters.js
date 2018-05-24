@@ -174,7 +174,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     html = await utils.asyncMathjax(html)
   }
   
-  const regexCheck = /id="page-header"|id="page-footer"|class="citation"/g
+  // const regexCheck = /id="page-header"|id="page-footer"|class="citation"/g
 
   // var cheeriosLoaded = false
 
