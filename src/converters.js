@@ -13,7 +13,6 @@ const sass = require('node-sass')
 const SVGO = require('svgo')
 const utils = require('./utils.js')
 const Cite = require('citation-js')
-const { JSDOM } = require('jsdom')
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
@@ -153,7 +152,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
         filename: masterPath,
         fs: fs,
         cheerio: cheerio,
-        basedir: path.resolve(masterPath, '..') + '/',
+        basedir: path.dirname(masterPath),
         filters: {
           katex: (text, options) => katex.renderToString(text),
           scss: function (text, options) {
@@ -174,19 +173,36 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
     html = await utils.asyncMathjax(html)
   }
+  
+  const regexCheck = /id="page-header"|id="page-footer"|class="citation"/g
 
-  html = renderBibliography(html).replace('<html><head></head><body>', '').replace('</body></html>', '')
+  var cheeriosLoaded = false
 
   var headerTemplate = ''
   var footerTemplate = ''
-  var pageHeaderIndex = html.indexOf('id="page-header"')
-  var pageFooterIndex = html.indexOf('id="page-footer"')
-  if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
-    var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
-    var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
-    headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
-    footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
+  // var pageHeaderIndex = html.indexOf('id="page-header"')
+  // var pageFooterIndex = html.indexOf('id="page-footer"')
+  // if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
+  if (regexCheck.test(html)) {
+    cheeriosLoaded = true
+    var $ = cheerio.load(html)
+  
+    renderBibliography($)
+    // var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
+    // var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
+    // headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
+    // footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
+
+    // Identical functionality to commented code above. A single instance of cheerio to share and manipulate
+    //   before rendering back to html
+    headerTemplate = $('#page-header').html() || '<span></span>'
+    footerTemplate = $('#page-footer').html() || '<span></span>'
   }
+
+  if(cheeriosLoaded) {
+    html = $.html()
+  }
+
   html = `<html><body>${html}</body></html>`
 
   await writeFile(tempHTML, html)
@@ -227,49 +243,36 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
 }
 
-function renderBibliography(html) {
-  const dom = new JSDOM(html)
+function renderBibliography($) {
 
-  const window = dom.window
-  const document = dom.window.document
+  var citations = $('.citation')
+  var bibliography = $('#bibliography')
   
-  var citations = document.getElementsByClassName('citation')
-  var bibliography = document.getElementById('bibliography')
-
-  if(bibliography) {
-    console.log(true)
-  } else {
-    console.log(false)
-  }
-
   if (citations.length > 0) {
     const data = new Cite()
-    for(var cite of citations) {
-      let key = cite.getAttribute('data-key')
-      let page = cite.getAttribute('data-page')
+    citations.each(function(index, value) {
+      let key = $(this).attr('data-key')
+      let page = $(this).attr('data-page')
       data.add(key)
-      for(var datum of data.data) {
+        for (var datum of data.data) {
         if (datum.id == key) {
-          if(page != '') {
-            cite.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
+            if (page != '') {
+              $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`)
           } else {
-            cite.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+              $(this).text(`(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`)
           }
           break
         }
       }
-    }
+    })
     if (bibliography) {
       const output = data.get({
         format: 'string',
         type: 'html',
-        style: bibliography.getAttribute('data-style'),
+        style: bibliography.attr('data-style'),
         lang: 'en-US'
       })
-      bibliography.innerHTML = output
+      bibliography.html(output)
     }
-    html = dom.serialize()
   }
-
-  return html
 }

@@ -21,7 +21,6 @@
     "commander": "^2.15.1",
     "csvtojson": "^1.1.9",
     "html2jade": "^0.8.6",
-    "jsdom": "^11.11.0",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.1.0",
     "katex": "^0.9.0",
