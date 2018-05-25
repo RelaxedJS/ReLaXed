@@ -12,6 +12,7 @@ const katex = require('katex')
 const sass = require('node-sass')
 const SVGO = require('svgo')
 const utils = require('./utils.js')
+const Cite = require('citation-js')
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
@@ -27,7 +28,6 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
   var svgPath = mermaidPath.substr(0, mermaidPath.lastIndexOf('.')) + '.svg'
   await writeFile(svgPath, svg)
 }
-
 
 exports.flowchartToSvg = async function (flowchartPath, page) {
   var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
@@ -152,7 +152,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
         filename: masterPath,
         fs: fs,
         cheerio: cheerio,
-        basedir: path.resolve(masterPath, '..') + '/',
+        basedir: path.dirname(masterPath),
         filters: {
           katex: (text, options) => katex.renderToString(text),
           scss: function (text, options) {
@@ -174,17 +174,8 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     html = await utils.asyncMathjax(html)
   }
 
-  var headerTemplate = ''
-  var footerTemplate = ''
-  var pageHeaderIndex = html.indexOf('id="page-header"')
-  var pageFooterIndex = html.indexOf('id="page-footer"')
-  if ((pageHeaderIndex > -1) || (pageFooterIndex > -1)) {
-    var minIndex = Math.min([pageHeaderIndex, pageFooterIndex].filter(c => c > -1))
-    var parsedHtml = cheerio.load(html.slice(minIndex - 20, html.length))
-    headerTemplate = parsedHtml('#page-header').html() || '<span></span>'
-    footerTemplate = parsedHtml('#page-footer').html() || '<span></span>'
-  }
-  html = `<html><body><script src='https://cdn.rawgit.com/larsgw/citation.js/archive/citation.js/citation-0.3.4.min.js'></script>${html}</body></html>`
+  html = `<html><body>${html}</body></html>`
+
   await writeFile(tempHTML, html)
 
   var tHTML = performance.now()
@@ -197,6 +188,11 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   await utils.waitForNetworkIdle(page, 200)
   var tNetwork = performance.now()
   console.log(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`.magenta)
+
+  var headerFooter = await getHeaderFooter(page)
+
+  var headerTemplate = headerFooter.head
+  var footerTemplate = headerFooter.foot
 
   var options = {
     path: outputPath,
@@ -217,8 +213,101 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   if (size) {
     options.size = size
   }
+
+  await renderBibliography(page)
+  
   await page.pdf(options)
 
   var tPDF = performance.now()
   console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
+}
+
+async function getHeaderFooter(page) {
+  var head = await page.$eval('#page-header', e => e.outerHTML)
+    .catch(e => '')
+  var foot = await page.$eval('#page-footer', e => e.outerHTML)
+    .catch(e => '')
+  
+  if(head != '' && foot == '') {
+    foot = '<span></span>'
+  }
+  if(foot != '' && head == '') {
+    head = '<span></span>'
+  }
+  
+  return new Promise((resolve, reject) => {
+    resolve({
+      head: head,
+      foot: foot
+    })
+  })
+}
+
+async function renderBibliography(page) {
+  const data = new Cite()
+
+  var values = await page.$$eval('.citation', nodes => {
+    var vals = nodes.map(node => {
+      return node.getAttribute('data-key')
+    })
+    return new Promise((resolve, reject) => {
+      resolve(vals)
+    })
+  }).catch(e => {
+    // Error occurs because there are no citations
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  if (values == false) {
+    return false
+  }
+
+  values.forEach(val => data.add(val))
+
+  var result = await page.$$eval('.citation', (nodes, data) => {
+    for (var element of nodes) {
+      let key = element.getAttribute('data-key')
+      let page = element.getAttribute('data-page')
+      for (var datum of data) {
+        if (datum.id == key) {
+          if (page != '') {
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
+          } else {
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+          }
+          break
+        }
+      }
+    }
+  }, data.data)
+
+  var style = await page.$eval('#bibliography', element => {
+    return element.getAttribute('data-style')
+  }).catch(e => {
+    // Error occurs because there is no bibliography
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  if (style == false) {
+    return false
+  }
+
+  const output = data.get({
+    format: 'string',
+    type: 'html',
+    style: style,
+    lang: 'en-US'
+  })
+
+  var final = await page.$eval('#bibliography', (element, data) => {
+    element.innerHTML = data
+  }, output)
+
+  return new Promise((resolve, reject) => {
+    resolve(true)
+  })
 }
