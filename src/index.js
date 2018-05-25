@@ -65,7 +65,10 @@ if (program.watch) {
 
 const puppeteerConfig = {
   headless: true,
-  args: program.sandbox ? ['--no-sandbox'] : []
+  args: (program.sandbox ? ['--no-sandbox'] : []).concat([
+    '--disable-translate',
+    '--disable-extensions'
+  ])
 }
 
 async function main () {
