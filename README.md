@@ -115,6 +115,13 @@ p A paragraph in my document
 ```
 A new file, ``my_document.pdf``, will be created. Every time you modify and save the sources, the file is automatically updated (make sure you use a PDF viewer with auto-refresh to see your changes happen in *real-time*). That's all there is to know to start creating your first document!
 
+It is also possible to generate the PDF file directly (without waiting for file changes) with this command:
+
+```
+relaxed my_document.pug --build-once
+```
+
+See [this wiki section](https://github.com/RelaxedJS/ReLaXed/wiki/Features#starting-relaxed) for more options.
 To go further:
 
 - Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html)
@@ -148,6 +155,8 @@ ReLaXed consists of a few lines of code binding together other software. It uses
 ## Contribute!
 
 ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/RelaxedJS/ReLaXed) under the ISC licence. Everyone is welcome to contribute!
+
+For bugs and feature requests, open a Github issue. For support or Pug/HTML-related questions, ask on Stackoverflow or on the brand new [reddit/r/relaxedjs](https://www.reddit.com/r/relaxedjs/) forum, which can be used for any kind of discussion.
 
 ## License
 

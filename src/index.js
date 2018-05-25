@@ -72,7 +72,7 @@ const puppeteerConfig = {
 }
 
 async function main () {
-  console.log('Launching ReLaXed...'.bold.magenta)
+  console.log('Launching ReLaXed...'.magenta.bold)
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
   // await page.pdf()
@@ -158,7 +158,7 @@ function watch (page) {
     if (taskPromise) {
       taskPromise.then(function () {
         var duration = ((performance.now() - t0) / 1000).toFixed(2)
-        console.log(`... Done in ${duration}s`.magenta.bold)
+        console.log(`... Done in ${duration}s`.magenta)
         globals.busy = false
       })
     } else {
