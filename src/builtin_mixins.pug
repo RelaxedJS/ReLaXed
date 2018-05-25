@@ -21,3 +21,10 @@ mixin stepSVG(step, path)
         }
       })
     div(width="100%")!= parsedHtml.html()
+
+mixin cite(key, page='')
+    span(data-key=key, data-page=page).citation
+
+mixin bibliography(style='citation-apa')
+    h1 Bibliography
+    div(data-style=style)#bibliography

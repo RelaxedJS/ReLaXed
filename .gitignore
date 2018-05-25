@@ -70,3 +70,6 @@ test/samples/*/diff.png
 test/samples/*/master_temp.htm
 
 package-lock.json
+
+# linux .directory
+.directory
