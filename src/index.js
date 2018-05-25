@@ -111,7 +111,7 @@ async function convert (page) {
  */
 
 function watch (page) {
-  console.log(colors.magenta(`\nNow waiting for changes in ${input.underline} and its directory`))
+  console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
   var globals = {
     busy: false
   }
