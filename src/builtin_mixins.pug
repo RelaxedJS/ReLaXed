@@ -1,3 +1,7 @@
+-
+  var globals = {
+    stepSVGmemo: {}
+  }
 mixin stepSVG(step, svgPath)
     //- Allows to import progressive (=animated) SVGs into slideshow.
     //- If a SVG has elements with a ``steps`` attributes, then
@@ -5,22 +9,37 @@ mixin stepSVG(step, svgPath)
     //- included into ``steps``.
     
     -
-      var text = fs.readFileSync(path.join(basedir, svgPath), 'utf8')
-      var parsedHtml = cheerio.load(text)
-      parsedHtml('*[steps]').each(function (i, c) {
+      svgPath = path.join(basedir, svgPath)
+      if (!globals.stepSVGmemo[svgPath]) {
+        var text = fs.readFileSync(svgPath, 'utf8')
+        globals.stepSVGmemo[svgPath] = cheerio.load(text, {xmlMode: true})
+      }
+      var parsed = globals.stepSVGmemo[svgPath]
+      var replacements = []
+      parsed('*[steps]').each(function (i, c) {
         var steps = c.attribs.steps
         if (steps.indexOf('--') > -1) {
            var [min, max] = steps.split("--")
            min =  (min === '') ? 0 : parseInt(min)
            max =  (max === '') ? 10000 : parseInt(max)
            if ((step < min) || (step > max)) {
-             c.attribs['style'] = 'display: none;'
+             var replacement = cheerio.load('<g></g>', {xmlMode: true}).root()
+             var element = parsed(this)
+             replacements.push([replacement, element])
+             element.replaceWith(replacement)
            }
         } else if (c.attribs.steps.split(',').indexOf(step.toString()) === -1) {
-          c.attribs['style'] = 'display: none;'
+          var replacement = cheerio.load('<g></g>', {xmlMode: true}).root()
+          var element = parsed(this)
+          replacements.push([replacement, element])
+          element.replaceWith(replacement)
         }
       })
-    div(width="100%")!= parsedHtml.html()
+      var html = parsed.xml()
+      replacements.map(function (rep) {
+          rep[0].replaceWith(rep[1])
+      })
+    div(width="100%")!= html
 
 mixin cite(key, page='')
     span(data-key=key, data-page=page).citation
