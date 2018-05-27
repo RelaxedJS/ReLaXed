@@ -15,7 +15,7 @@ exports.bibliography = async function(page) {
   })
 
   // No citations
-  if (values == false) return false
+  if (!values) return false
 
   const Cite = require('citation-js')
   const data = new Cite()
@@ -42,7 +42,7 @@ exports.bibliography = async function(page) {
   }, data.data)
 
   // Get the bibliography style
-  // TODO: remove with plugin system: define with [//- use-plugin: bibliography <style>] or config.json
+  // TODO: remove with plugin system: define with [//- use-plugin: bibliography <style>] or [config.json]
   var style = await page.$eval('#bibliography', element => {
     return element.getAttribute('data-style')
   }).catch(e => {
@@ -51,7 +51,7 @@ exports.bibliography = async function(page) {
   })
 
   // No style because no bibliography
-  if (style == false) return false
+  if (!style) return false
 
   // Format html output for bibliography
   const output = data.get({
