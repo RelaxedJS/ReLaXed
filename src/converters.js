@@ -115,8 +115,8 @@ exports.tableToPug = function (tablePath) {
           header = null
         }
         var html = utils.formatTemplate('table', { header: header, tbody: rows })
-        var pugPath = tablePath.substr(0,generatorsblePath.length - extension.length) + '.pug'
-        html2jade.convertHtml(html, {bodygeneratorss: true}, function (err, jade) {
+        var pugPath = tablePath.substr(0,tablePath.length - extension.length) + '.pug'
+        html2jade.convertHtml(html, {bodyless: true}, function (err, jade) {
           if (err) {
             console.log(err)
           }
@@ -217,13 +217,8 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     options.size = size
   }
 
-<<<<<<< HEAD
   await generate.bibliography(page)
   
-=======
-  await renderBibliography(page)
-
->>>>>>> ec2e474abbb86d94569ad11c4e115456c156defd
   await page.pdf(options)
 
   var tPDF = performance.now()
@@ -249,77 +244,4 @@ async function getHeaderFooter(page) {
       foot: foot
     })
   })
-<<<<<<< HEAD
 }
-=======
-}
-
-async function renderBibliography(page) {
-  const data = new Cite()
-
-  var values = await page.$$eval('.citation', nodes => {
-    var vals = nodes.map(node => {
-      return node.getAttribute('data-key')
-    })
-    return new Promise((resolve, reject) => {
-      resolve(vals)
-    })
-  }).catch(e => {
-    // Error occurs because there are no citations
-    return new Promise((resolve, reject) => {
-      resolve(false)
-    })
-  })
-
-  if (values == false) {
-    return false
-  }
-
-  values.forEach(val => data.add(val))
-
-  var result = await page.$$eval('.citation', (nodes, data) => {
-    for (var element of nodes) {
-      let key = element.getAttribute('data-key')
-      let page = element.getAttribute('data-page')
-      for (var datum of data) {
-        if (datum.id == key) {
-          if (page != '') {
-            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
-          } else {
-            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
-          }
-          break
-        }
-      }
-    }
-  }, data.data)
-
-  var style = await page.$eval('#bibliography', element => {
-    return element.getAttribute('data-style')
-  }).catch(e => {
-    // Error occurs because there is no bibliography
-    return new Promise((resolve, reject) => {
-      resolve(false)
-    })
-  })
-
-  if (style == false) {
-    return false
-  }
-
-  const output = data.get({
-    format: 'string',
-    type: 'html',
-    style: style,
-    lang: 'en-US'
-  })
-
-  var final = await page.$eval('#bibliography', (element, data) => {
-    element.innerHTML = data
-  }, output)
-
-  return new Promise((resolve, reject) => {
-    resolve(true)
-  })
-}
->>>>>>> ec2e474abbb86d94569ad11c4e115456c156defd
