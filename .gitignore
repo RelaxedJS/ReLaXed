@@ -73,3 +73,7 @@ package-lock.json
 
 # linux .directory
 .directory
+
+# VS code
+.vscode
+.eslintrc.json

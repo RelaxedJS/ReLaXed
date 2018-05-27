@@ -6,7 +6,7 @@ const cheerio = require('cheerio')
 const path = require('path')
 const csv = require('csvtojson')
 const html2jade = require('html2jade')
-const colors = require('colors')
+const colors = require('colors/safe')
 const { performance } = require('perf_hooks')
 const katex = require('katex')
 const sass = require('node-sass')
@@ -154,6 +154,8 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
         fs: fs,
         cheerio: cheerio,
         basedir: path.dirname(masterPath),
+        path: path,
+        performance: performance,
         filters: {
           katex: (text, options) => katex.renderToString(text),
           scss: function (text, options) {
@@ -165,7 +167,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
       })
     } catch (error) {
       console.log(error.message)
-      console.error('There was a Pug error (see above)'.red)
+      console.error(colors.red('There was a Pug error (see above)'))
       return
     }
   } else {
@@ -180,15 +182,15 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   await writeFile(tempHTML, html)
 
   var tHTML = performance.now()
-  console.log(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`.magenta)
+  console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
 
   await page.goto('file:' + tempHTML, {waitUntil: ['load', 'domcontentloaded']})
   var tLoad = performance.now()
-  console.log(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`.magenta)
+  console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
 
   await utils.waitForNetworkIdle(page, 200)
   var tNetwork = performance.now()
-  console.log(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`.magenta)
+  console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
 
   var headerFooter = await getHeaderFooter(page)
 
@@ -215,12 +217,17 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     options.size = size
   }
 
+<<<<<<< HEAD
   await generate.bibliography(page)
   
+=======
+  await renderBibliography(page)
+
+>>>>>>> ec2e474abbb86d94569ad11c4e115456c156defd
   await page.pdf(options)
 
   var tPDF = performance.now()
-  console.log(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`.magenta)
+  console.log(colors.magenta(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`))
 }
 
 async function getHeaderFooter(page) {
@@ -228,18 +235,91 @@ async function getHeaderFooter(page) {
     .catch(e => '')
   var foot = await page.$eval('#page-footer', e => e.outerHTML)
     .catch(e => '')
-  
+
   if(head != '' && foot == '') {
     foot = '<span></span>'
   }
   if(foot != '' && head == '') {
     head = '<span></span>'
   }
-  
+
   return new Promise((resolve, reject) => {
     resolve({
       head: head,
       foot: foot
     })
   })
+<<<<<<< HEAD
 }
+=======
+}
+
+async function renderBibliography(page) {
+  const data = new Cite()
+
+  var values = await page.$$eval('.citation', nodes => {
+    var vals = nodes.map(node => {
+      return node.getAttribute('data-key')
+    })
+    return new Promise((resolve, reject) => {
+      resolve(vals)
+    })
+  }).catch(e => {
+    // Error occurs because there are no citations
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  if (values == false) {
+    return false
+  }
+
+  values.forEach(val => data.add(val))
+
+  var result = await page.$$eval('.citation', (nodes, data) => {
+    for (var element of nodes) {
+      let key = element.getAttribute('data-key')
+      let page = element.getAttribute('data-page')
+      for (var datum of data) {
+        if (datum.id == key) {
+          if (page != '') {
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
+          } else {
+            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+          }
+          break
+        }
+      }
+    }
+  }, data.data)
+
+  var style = await page.$eval('#bibliography', element => {
+    return element.getAttribute('data-style')
+  }).catch(e => {
+    // Error occurs because there is no bibliography
+    return new Promise((resolve, reject) => {
+      resolve(false)
+    })
+  })
+
+  if (style == false) {
+    return false
+  }
+
+  const output = data.get({
+    format: 'string',
+    type: 'html',
+    style: style,
+    lang: 'en-US'
+  })
+
+  var final = await page.$eval('#bibliography', (element, data) => {
+    element.innerHTML = data
+  }, output)
+
+  return new Promise((resolve, reject) => {
+    resolve(true)
+  })
+}
+>>>>>>> ec2e474abbb86d94569ad11c4e115456c156defd

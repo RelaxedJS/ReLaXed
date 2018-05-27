@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-const colors = require('colors')
+const colors = require('colors/safe')
 const program = require('commander')
 const chokidar = require('chokidar')
 const puppeteer = require('puppeteer')
@@ -48,8 +48,8 @@ if (program.temp) {
   if (validTempPath) {
     tempDir = path.resolve(program.temp)
   } else {
-    console.error(('ReLaXed error: Could not find specified --temp directory: ' +
-                   program.temp).red)
+    console.error(colors.red('ReLaXed error: Could not find specified --temp directory: ' +
+                   program.temp))
     process.exit(1)
   }
 } else {
@@ -65,18 +65,21 @@ if (program.watch) {
 
 const puppeteerConfig = {
   headless: true,
-  args: program.sandbox ? ['--no-sandbox'] : []
+  args: (program.sandbox ? ['--no-sandbox'] : []).concat([
+    '--disable-translate',
+    '--disable-extensions',
+    '--disable-sync'
+  ])
 }
 
 async function main () {
-  console.log('Launching ReLaXed...'.magenta.bold)
+  console.log(colors.magenta.bold('Launching ReLaXed...'))
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
-  // await page.pdf()
   page.on('pageerror', function (err) {
-    console.log('Page error: ' + err.toString())
+    console.log(colors.red('Page error: ' + err.toString()))
   }).on('error', function (err) {
-    console.log('Error: ' + err.toString())
+    console.log(colors.red('Error: ' + err.toString()))
   })
 
   if (program.buildOnce) {
@@ -92,12 +95,12 @@ async function main () {
  * @param {puppeteer.Page} page
  */
 async function convert (page) {
-  console.log('Building the document...'.bold.magenta)
+  console.log(colors.magenta.bold('Building the document...'))
   await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
     console.log(e.toString())
     process.exit(1)
   })
-  console.log('... done !'.bold.magenta)
+  console.log(colors.magenta.bold('... done !'))
   process.exit(0)
 }
 
@@ -108,7 +111,7 @@ async function convert (page) {
  */
 
 function watch (page) {
-  console.log(`\nNow waiting for changes in ${input.underline} and its directory`.magenta)
+  console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
   var globals = {
     busy: false
   }
@@ -126,10 +129,10 @@ function watch (page) {
     }
     var shortFileName = filepath.replace(inputDir, '')
     if (globals.busy) {
-      console.log(`( detected change in ${shortFileName}, but too busy right now )`.yellow)
+      console.log(colors.yellow(`( detected change in ${shortFileName}, but too busy right now )`))
       return
     }
-    console.log(`\nProcessing detected change in ${shortFileName}...`.magenta.bold)
+    console.log(colors.magenta.bold(`\nProcessing detected change in ${shortFileName}...`))
     globals.busy = true
 
     var t0 = performance.now()
@@ -155,7 +158,7 @@ function watch (page) {
     if (taskPromise) {
       taskPromise.then(function () {
         var duration = ((performance.now() - t0) / 1000).toFixed(2)
-        console.log(`... Done in ${duration}s`.magenta)
+        console.log(colors.magenta.bold(`... Done in ${duration}s`))
         globals.busy = false
       })
     } else {
