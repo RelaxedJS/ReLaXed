@@ -113,7 +113,7 @@ if (program.temp) {
     process.exit(1)
   }
 } else {
-  tempDir = inputDir
+  tempDir = IN.fullPath
 }
 
 const tempHTML      = path.join(tempDir, IN.name + '_temp.htm')
