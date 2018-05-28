@@ -7,7 +7,6 @@ const puppeteer       = require('puppeteer')
 const { performance } = require('perf_hooks')
 const path            = require('path')
 const fs              = require('fs')
-const os              = require('os')
 
 const converters      = require('./converters.js')
 
@@ -20,6 +19,7 @@ program
     .arguments('<input> [output] [options]')
     .option('--no-sandbox', 'disable puppeteer sandboxing')
     .option('-w, --watch <locations>', 'Watch other locations', [])
+    .option('-t, --temp [location]', 'Directory for temp file')
     .option('--build-once', 'Build only, do not watch')
     .action(function (inp, out) {
         input = inp
@@ -38,10 +38,6 @@ if (!input) {
  *                      Variable Setting
  * ==============================================================
  */
-
-// Use OS temp directory: linux: /tmp/relaxed-######
-const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'relaxed-'))
-
 // Input file data: {name} (master), {ext} (pug|html),
 //   {path} (path/to), {fullPath} (/home/user/relaxed/full/path/to),
 //   {file} (/home/user/relaxed/full/path/to/master.pug)
@@ -105,7 +101,22 @@ const extList = [
 // Output file, path, and temp html file
 if (!output) output = path.join(IN.fullPath, IN.name + '.pdf')
 const outputPath    = path.resolve(output)
-const tempHTML      = path.join(temp, IN.name + '_temp.htm')
+
+var tempDir
+if (program.temp) {
+  var validTempPath = fs.existsSync(program.temp) && fs.statSync(program.temp).isDirectory()
+  if (validTempPath) {
+    tempDir = path.resolve(program.temp)
+  } else {
+    console.error(colors.red('ReLaXed error: Could not find specified --temp directory: ' +
+                   program.temp))
+    process.exit(1)
+  }
+} else {
+  tempDir = inputDir
+}
+
+const tempHTML      = path.join(tempDir, IN.name + '_temp.htm')
 
 // Default and additional watch locations
 let watchLocations = [IN.fullPath]
