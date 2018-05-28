@@ -305,7 +305,11 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     // TODO: page-second-pass hook
     // TODO: Add option to output fully rendered HTML?
-    await writeFile(tempHTML, await page.$eval('html', el => el.outerHTML))
+    await writeFile(tempHTML,
+        await page.$eval('html', el => el.outerHTML)
+        .catch(error => {
+            console.log(error)
+        }))
     await page.pdf(options)
 
     var tPDF = performance.now()
