@@ -7,7 +7,7 @@ exports.bibliography = async function(page) {
     // Get all the keys from citations
     var values = await page.$$eval('.citation', nodes => {
         return nodes.map(node => {
-        return node.getAttribute('data-key')
+            return node.getAttribute('data-key')
         })
     // Error occurs because there are no citations
     }).catch(e => { return false })
@@ -24,18 +24,18 @@ exports.bibliography = async function(page) {
     // Format the citation spans
     var result = await page.$$eval('.citation', (nodes, data) => {
         for (var element of nodes) {
-        let key = element.getAttribute('data-key')
-        let page = element.getAttribute('data-page')
-        for (var datum of data) {
-            if (datum.id == key) {
-            if (page != '') {
-                element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
-            } else {
-                element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+            let key = element.getAttribute('data-key')
+            let page = element.getAttribute('data-page')
+            for (var datum of data) {
+                if (datum.id == key) {
+                if (page != '') {
+                    element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
+                } else {
+                    element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
+                }
+                break
+                }
             }
-            break
-            }
-        }
         }
     }, data.data)
 
