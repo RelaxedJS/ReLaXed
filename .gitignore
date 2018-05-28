@@ -76,4 +76,4 @@ package-lock.json
 
 # VS code
 .vscode
-.eslintrc.json
+.eslintrc.*
