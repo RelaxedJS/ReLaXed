@@ -54,30 +54,6 @@ const IN = {
     inputFilenameNoExt -> IN.name
 */
 
-// User configuration file
-/* Comment out until ready
-if (fs.existsSync(path.join(IN.fullPath, '.relaxed.json'))) {
-    const config = require(path.join(IN.fullPath, '.relaxed.json'))
-}
-*/
-
-// User global configuration data
-//  TODO: Add configuration to master.pug for using a template: (paper|report|slide|novel|summary|etc)
-//        //- use-template: paper -> include /home/user/.relaxed/templates/paper.pug
-//        User definable templates. Plugins mixins are templates themselves
-//  TODO: Correct home directory for Windows, os.homedir() goes to C:\Users\username, not to C:\Users\username\AppData like it should
-//  TODO: Apples equivalent? (never touched apple, would not know)
-/* Comment out until ready
-var user = {
-    home: path.join(os.homedir(), '.relaxed'),
-    templates: path.join(user.home, 'templates')
-}
-
-if (fs.existsSync(path.join(user.home, 'relaxed.json'))) {
-    user.config = require(path.join(user.home, 'relaxed.json'))
-}
-*/
-
 // Supported file extensions to watch for changes
 //  TODO: Add a means for a plugin to watch for custom extensions
 const extList = [
