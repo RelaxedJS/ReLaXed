@@ -22,7 +22,7 @@ program
   .option('--no-sandbox', 'disable puppeteer sandboxing')
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
-  .option('--build-once', 'Build only, do not watch')
+  .option('--bo, --build-once', 'Build once only, do not watch')
   .action(function (inp, out) {
     input = inp
     output = out

@@ -20,6 +20,9 @@ describe('Sample tests', function () {
     {
       sampleName: 'letter_example',
       timeout: 10000
+    }, {
+      sampleName: 'data_require_example',
+      timeout: 10000
     }
   ]
   tests.forEach(function(test) {

@@ -247,6 +247,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
         cheerio: cheerio,
         basedir: path.dirname(masterPath),
         path: path,
+        require: require,
         performance: performance,
         filters: {
           katex: (text, options) => katex.renderToString(text),
