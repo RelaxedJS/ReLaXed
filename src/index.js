@@ -41,13 +41,17 @@ if (!input) {
 // Input file data: {name} (master), {ext} (pug|html),
 //   {path} (path/to), {fullPath} (/home/user/relaxed/full/path/to),
 //   {file} (/home/user/relaxed/full/path/to/master.pug)
-const IN = {
-    name    : path.basename(input, path.extname(input)),
-    ext     : path.extname(input),
-    path    : path.dirname(input),
-    fullPath: path.resolve(input, '..'),
-    file    : path.resolve(input)
-}
+// const IN = {
+//     name    : path.basename(input, path.extname(input)),
+//     ext     : path.extname(input),
+//     path    : path.dirname(input),
+//     fullPath: path.resolve(input, '..'),
+//     file    : path.resolve(input)
+// }
+
+const inputPath          = path.resolve(input)
+const inputDir           = path.resolve(input, '..')
+const inputFilenameNoExt = path.basename(input, path.extname(input))
 
 /*
     inputPath          -> IN.file
@@ -57,47 +61,27 @@ const IN = {
 
 // Supported file extensions to watch for changes
 //  TODO: Add a means for a plugin to watch for custom extensions
-const extList = [
-    '.pug',
-    '.md',
-    '.html',
-    '.css',
-    '.scss',
-    '.svg',
-    '.mermaid',
-    '.chart.js',
-    '.png',
-    '.flowchart',
-    '.flowchart.json',
-    '.vegalite.json',
-    '.table.csv',
-    '.htable.csv'
-]
-
 
 // Output file, path, and temp html file
-if (!output) output = path.join(IN.fullPath, IN.name + '.pdf')
+if (!output) output = path.join(inputDir, inputFilenameNoExt + '.pdf')
 const outputPath    = path.resolve(output)
 
 var tempDir
 if (program.temp) {
-  var validTempPath = fs.existsSync(program.temp) && fs.statSync(program.temp).isDirectory()
-  if (validTempPath) {
-    tempDir = path.resolve(program.temp)
-  } else {
-    console.error(colors.red('ReLaXed error: Could not find specified --temp directory: ' +
-                   program.temp))
-    process.exit(1)
-  }
-} else {
-  tempDir = IN.fullPath
-}
+    var validTempPath = fs.existsSync(program.temp) && fs.statSync(program.temp).isDirectory()
+    if (validTempPath) {
+        tempDir = path.resolve(program.temp)
+    } else {
+        console.error(colors.red(`ReLaXed error: Could not find specified --temp directory: ${program.temp}`))
+        process.exit(1)
+    }
+} else { tempDir = inputDir }
 
-const tempHTML = path.join(tempDir, IN.name + '_temp.htm')
+const tempHTMLPath = path.join(tempDir, inputFilenameNoExt + '_temp.htm')
 
 // Default and additional watch locations
-let watchLocations = [IN.fullPath]
-if (program.watch) watchLocations = watchLocations.concat(program.watch)
+let watchLocations = [inputDir]
+if (program.watch) { watchLocations = watchLocations.concat(program.watch) }
 
 // Google Chrome headless configuration
 const puppeteerConfig = {
@@ -139,7 +123,7 @@ async function main () {
 async function convert (page) {
     console.log(colors.magenta.bold('Building the document...'))
 
-    await converters.masterDocumentToPDF(IN.file, page, tempHTML, outputPath).catch(error => {
+    await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(error => {
         console.log(error.toString())
         process.exit(1)
     })
@@ -155,7 +139,7 @@ async function convert (page) {
  */
 function watch (page) {
     // Changed 'watching file and directory' to 'watching directory'
-    console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(IN.path)}`))
+    console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(path.dirname(input))}`))
 
     var globals = { busy: false }
 
@@ -167,9 +151,12 @@ function watch (page) {
     })
     .on('change', (filepath) => {
 
-        if (!(extList.some(ext => filepath.endsWith(ext)))) return
+        if (!(['.pug', '.md', '.html', '.css',
+            '.scss', '.svg', '.mermaid', '.chart.js',
+            '.png', '.flowchart', '.flowchart.json', '.vegalite.json',
+            '.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext)))) return
 
-        var fileName = filepath.replace(IN.fullPath, '')
+        var fileName = filepath.replace(inputDir, '')
         if (globals.busy) {
             console.log(colors.yellow(`( detected change in ${fileName}, but too busy right now )`))
             return
@@ -203,7 +190,7 @@ function watch (page) {
             taskPromise = converters.svgToOptimizedSvg(filepath)
 
         } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-            taskPromise = converters.masterDocumentToPDF(IN.file, page, tempHTML, outputPath)
+            taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
         }
 
         if (taskPromise) {
@@ -213,7 +200,7 @@ function watch (page) {
                 globals.busy = false
             })
 
-        } else globals.busy = false
+        } else { globals.busy = false }
 
     })
 

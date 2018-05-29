@@ -144,7 +144,7 @@ exports.tableToPug = function (tablePath) {
         .fromFile(tablePath)
         .on('csv', (csvRow) => { rows.push(csvRow) })
         .on('done', (error) => {
-            if (error) console.log('error', error)
+            if (error) { console.log('error', error) }
             else {
                 if (tablePath.endsWith('.htable.csv')) {
                     extension = '.htable.csv'
@@ -158,12 +158,12 @@ exports.tableToPug = function (tablePath) {
                 var html = utils.formatTemplate('table', { header: header, tbody: rows })
                 var pugPath = tablePath.substr(0,tablePath.length - extension.length) + '.pug'
 
-                html2jade.convertHtml(html, {bodyless: true}, function (err, jade) {
-                    if (err) console.log(err)
+                html2jade.convertHtml(html, {bodyless: true}, function (error, jade) {
+                    if (error) { console.log(error) }
 
                     writeFile(pugPath, jade)
                 })
-          }
+            }
       })
 }
 
