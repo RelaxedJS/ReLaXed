@@ -297,7 +297,6 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 async function getHeaderFooter(page) {
     var head = await page.$eval('#page-header', element => element.outerHTML)
         .catch(error => '')
-
     var foot = await page.$eval('#page-footer', element => element.outerHTML)
         .catch(error => '')
 

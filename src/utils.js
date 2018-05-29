@@ -1,7 +1,6 @@
 const mjpage = require('mathjax-node-page')
-const pug = require('pug')
-const path = require('path')
-
+const pug    = require('pug')
+const path   = require('path')
 
 // Templates for chart.js, vegalite, table, htable, and flowchart
 exports.formatTemplate = function (tempName, data) {
@@ -61,7 +60,6 @@ exports.getMatch = function (string, query) {
     }
     return result
 }
-
 
 // Scrape (pull) images from the web
 exports.parseDataUrl = function (dataUrl) {

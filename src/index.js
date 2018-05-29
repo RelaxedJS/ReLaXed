@@ -7,8 +7,9 @@ const { performance } = require('perf_hooks')
 const path            = require('path')
 const fs              = require('fs')
 
-const converters = require('./converters.js')
+const converters      = require('./converters.js')
 
+var input, output
 const version = require('../package.json').version
 
 var input, output
@@ -70,12 +71,12 @@ if (program.watch) {
 
 // Google Chrome headless configuration
 const puppeteerConfig = {
-  headless: true,
-  args: (program.sandbox ? ['--no-sandbox'] : []).concat([
-    '--disable-translate',
-    '--disable-extensions',
-    '--disable-sync'
-  ])
+    headless: true,
+    args: (program.sandbox ? ['--no-sandbox'] : []).concat([
+        '--disable-translate',
+        '--disable-extensions',
+        '--disable-sync'
+    ])
 }
 
 
@@ -122,7 +123,6 @@ async function convert (page) {
  *
  * @param {puppeteer.Page} page
  */
-
 function watch (page) {
     console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
 
