@@ -240,7 +240,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     // TODO: post-pug hook
 
-    // await writeFile(tempHTML, html)
+    await writeFile(tempHTML, html)
 
     var tHTML = performance.now()
     console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
@@ -286,7 +286,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     // TODO: page-second-pass hook
     // TODO: Add option to output fully rendered HTML?
-    await writeFile(tempHTML, await page.content())
+    // await writeFile(tempHTML, await page.content())
     await page.pdf(options)
 
     var tPDF = performance.now()
