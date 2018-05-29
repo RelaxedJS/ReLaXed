@@ -153,7 +153,6 @@ async function convert (page) {
  *
  * @param {puppeteer.Page} page
  */
-
 function watch (page) {
     // Changed 'watching file and directory' to 'watching directory'
     console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(IN.path)}`))
