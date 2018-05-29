@@ -17,7 +17,7 @@ const generate = require('./generators')
 
 exports.mermaidToSvg = async function (mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
-  var html = utils.formateTemplate('mermaid', { mermaidSpec })
+  var html = utils.formatTemplate('mermaid', { mermaidSpec })
   await page.setContent(html)
   await page.waitForSelector('#graph svg')
   var svg = await page.evaluate(function () {
@@ -42,7 +42,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
       flowchartConf = fs.readFileSync(myPath, 'utf8')
     }
   }
-  var html = utils.formateTemplate('flowchart', { flowchartSpec, flowchartConf })
+  var html = utils.formatTemplate('flowchart', { flowchartSpec, flowchartConf })
   await page.setContent(html)
   await page.waitForSelector('#chart svg')
   var svg = await page.evaluate(function () {
@@ -59,7 +59,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
 
 exports.vegaliteToSvg = async function (vegalitePath, page) {
   var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
-  var html = utils.formateTemplate('vegalite', { vegaliteSpec })
+  var html = utils.formatTemplate('vegalite', { vegaliteSpec })
   await page.setContent(html)
   await page.waitForSelector('#vis svg')
   var svg = await page.evaluate(function () {
@@ -128,7 +128,7 @@ exports.tableToPug = function (tablePath) {
 
 exports.chartjsToPNG = async function (chartjsPath, page) {
   var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
-  var html = utils.formateTemplate('chartjs', { chartSpec })
+  var html = utils.formatTemplate('chartjs', { chartSpec })
   var tempHTML = chartjsPath + '.htm'
   await writeFile(tempHTML, html)
   await page.setContent(html)
