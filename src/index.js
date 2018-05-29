@@ -48,6 +48,7 @@ const IN = {
     fullPath: path.resolve(input, '..'),
     file    : path.resolve(input)
 }
+
 /*
     inputPath          -> IN.file
     inputDir           -> IN.fullPath
@@ -92,7 +93,7 @@ if (program.temp) {
   tempDir = IN.fullPath
 }
 
-const tempHTML      = path.join(tempDir, IN.name + '_temp.htm')
+const tempHTML = path.join(tempDir, IN.name + '_temp.htm')
 
 // Default and additional watch locations
 let watchLocations = [IN.fullPath]
@@ -124,11 +125,10 @@ async function main () {
 
     }).on('error', function (err) {
         console.log(colors.red(`Error: ${err.toString()}`))
-
     })
 
-    if (program.buildOnce) convert(page)
-    else watch(page)
+    if (program.buildOnce) { convert(page) }
+    else { watch(page) }
 }
 
 /**
@@ -158,9 +158,7 @@ function watch (page) {
     // Changed 'watching file and directory' to 'watching directory'
     console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(IN.path)}`))
 
-    var globals = {
-        busy: false
-    }
+    var globals = { busy: false }
 
     chokidar.watch(watchLocations, {
         awaitWriteFinish: {
@@ -170,9 +168,7 @@ function watch (page) {
     })
     .on('change', (filepath) => {
 
-        if (!(extList.some(ext => filepath.endsWith(ext)))) {
-            return
-        }
+        if (!(extList.some(ext => filepath.endsWith(ext)))) return
 
         var fileName = filepath.replace(IN.fullPath, '')
         if (globals.busy) {

@@ -230,7 +230,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
             return
         }
 
-    } else   html = fs.readFileSync(masterPath, 'utf8')
+    } else { html = fs.readFileSync(masterPath, 'utf8') }
 
     if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
         html = await utils.asyncMathjax(html)
@@ -252,25 +252,6 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     await utils.waitForNetworkIdle(page, 200)
     var tNetwork = performance.now()
     console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
-
-
-    /*
-     *          Get Header and Footer template
-     */
-    var getHeaderFooter = async function (page) {
-        var head = await page.$eval('#page-header', element => element.outerHTML)
-            .catch(error => '')
-        var foot = await page.$eval('#page-footer', element => element.outerHTML)
-            .catch(error => '')
-
-        if(head != '' && foot == '') foot = '<span></span>'
-        if(foot != '' && head == '') head = '<span></span>'
-
-        return {
-            head: head,
-            foot: foot
-        }
-    } 
 
     var headerFooter = await getHeaderFooter(page)
 
@@ -305,13 +286,27 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     // TODO: page-second-pass hook
     // TODO: Add option to output fully rendered HTML?
-    await writeFile(tempHTML,
-        await page.$eval('html', el => el.outerHTML)
-        .catch(error => {
-            console.log(error)
-        }))
+    await writeFile(tempHTML, await page.content())
     await page.pdf(options)
 
     var tPDF = performance.now()
     console.log(colors.magenta(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`))
 }
+
+/*
+ *          Get Header and Footer template
+ */
+async function getHeaderFooter(page) {
+    var head = await page.$eval('#page-header', element => element.outerHTML)
+        .catch(error => '')
+    var foot = await page.$eval('#page-footer', element => element.outerHTML)
+        .catch(error => '')
+
+    if(head != '' && foot == '') { foot = '<span></span>' }
+    if(foot != '' && head == '') { head = '<span></span>' }
+
+    return {
+        head: head,
+        foot: foot
+    }
+} 
