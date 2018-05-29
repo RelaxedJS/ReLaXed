@@ -1,0 +1,36 @@
+@import 'https://fonts.googleapis.com/css?family=Open+Sans';
+
+@page {
+  margin: 1cm 1.5cm 1cm 1.5cm;
+}
+
+html {
+  padding-left: 1cm;
+  padding-right: 1cm;
+  font-family: 'Open Sans';
+}
+.header {
+  margin-left: -1cm;
+  height: 80px;
+  .logo {
+    height: 2cm;
+    width:auto;
+    position:absolute;
+  }
+}
+.signature {
+  height: 2cm;
+  margin-left: 1cm;
+  width: auto;
+}
+
+.recipient {
+  text-align: right;
+  margin: 1em auto 2em;
+}
+.main-text {
+  text-align: justify;
+}
+.opening, .closing {
+  margin: 50px 0 20px 0px;
+}

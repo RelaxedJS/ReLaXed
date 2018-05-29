@@ -3,7 +3,7 @@
 const colors = require('colors')
 const program = require('commander')
 const path = require('path')
-const { spawn } = require( 'child_process' )
+const { spawn } = require('child_process')
 const version = require('../../package.json').version
 
 var input, output
@@ -40,9 +40,9 @@ subprocess
     console.log(data)
   })
   .on('close', async function (code) {
-  if (code) {
-    console.log(code)
-  } else {
-    console.log("...done.")
-  }
-})
+    if (code) {
+      console.log(code)
+    } else {
+      console.log('...done.')
+    }
+  })
