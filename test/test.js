@@ -26,9 +26,9 @@ describe('Sample tests', function () {
       timeout: 10000
     }
   ]
-  tests.forEach(function(test) {
+  tests.forEach(function (test) {
     it('renders sample "' + test.sampleName + '" correctly', function (done) {
-      this.timeout(test.timeout);
+      this.timeout(test.timeout)
       var basedir = path.join(__dirname, 'samples', test.sampleName)
       var paths = {
         master: path.join(basedir, 'master.pug'),
