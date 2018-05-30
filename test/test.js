@@ -17,10 +17,11 @@ describe('Sample tests', function () {
       sampleName: 'bibliography_example',
       timeout: 10000
     },
+    // {
+    //   sampleName: 'letter_example',
+    //   timeout: 10000
+    // },
     {
-      sampleName: 'letter_example',
-      timeout: 10000
-    }, {
       sampleName: 'data_require_example',
       timeout: 10000
     }
