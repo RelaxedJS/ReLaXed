@@ -34,6 +34,7 @@ describe('Sample tests', function () {
         expected: path.join(basedir, 'expected.png'),
         diff: path.join(basedir, 'diff.png'),
         pdf: path.join(basedir, 'master.pdf'),
+        lastTestPNG: path.join(basedir, 'last_test_result.png'),
         html: path.join(basedir, 'master_temp.htm')
       }
       var process = spawn('relaxed', [ paths.master, '--build-once' ])
@@ -51,6 +52,7 @@ describe('Sample tests', function () {
         diff.run((error, result) => {
           fs.unlinkSync(paths.pdf)
           fs.unlinkSync(paths.html)
+          fs.renameSync(imgPath, paths.lastTestPNG)
           if (error) {
             throw error
           } else {
@@ -77,7 +79,7 @@ describe('Interactive tests', function () {
       timeout: 10000
     }
   ]
-  var process = spawn('relaxed', [ path.join(basedir, 'master.pug') ])
+  // var process = spawn('relaxed', [ path.join(basedir, 'master.pug') ])
   it('renders mermaid diagram correctly' , function (done) {
     // TODO: Implement tests
     done()
