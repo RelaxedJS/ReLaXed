@@ -1,6 +1,6 @@
 {
   "name": "relaxedjs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/index.js",
   "bin": {
