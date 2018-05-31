@@ -2,13 +2,42 @@ const fs      = require('fs')
 const path    = require('path')
 const DepTree = require('deptree')
 
-var depTree = new DepTree()
+/*
+ * ========================================================
+ *                          Errors
+ * ========================================================
+ */
+function NoNameError(message) {
+    this.name = 'NoNameError'
+    this.message = message || ''
+}
+NoNameError.prototype = Error.prototype
+
+function NoOptionError(message) {
+    this.name = 'NoOptionError'
+    this.message = message || ''
+}
+NoOptionError.prototype = Error.prototype
+
+function NoPluginError(message) {
+    this.name = 'NoPluginError'
+    this.message = message || ''
+}
+NoPluginError.prototype = Error.prototype
+
+function PluginExistsError(message) {
+    this.name = 'PluginExistsError'
+    this.message = message || ''
+}
+PluginExistsError.prototype = Error.prototype
 
 /*
  * ========================================================
  *                       Plugin Lists
  * ========================================================
  */
+
+var masterPluginList = []
 var plugins = {}
 /*
 @struct plugin = {
@@ -17,6 +46,14 @@ var plugins = {}
     'html': integer,
     'pageFirst': integer,
     'pageSecond': integer
+}
+*/
+
+var mixins = []
+/*
+@struct mixin = {
+    plugin: string,
+    mixin: string
 }
 */
 
@@ -94,9 +131,12 @@ async function _getPlugin(key) {
 
         var plugin = plugins[key]
 
-        if(plugin['watcher']) { plugin['watcher'] = watchers[plugin['watcher']]}
-        if(plugin['pug']) { plugin['pug'] = pugs[plugin['pug']]}
-        if(plugin['html']) { plugin['html'] = htmls[plugin['html']]}
+        if(plugin['mixin'])      {      plugin['mixin'] = mixins[plugin['mixin']]           }
+        if(plugin['watcher'])    {    plugin['watcher'] = watchers[plugin['watcher']]       }
+        if(plugin['pug'])        {        plugin['pug'] = pugs[plugin['pug']]               }
+        if(plugin['html'])       {       plugin['html'] = htmls[plugin['html']]             }
+        if(plugin['pageFirst'])  {  plugin['pageFirst'] = pageFirsts[plugin['pageFirst']]   }
+        if(plugin['pageSecond']) { plugin['pageSecond'] = pageSeconds[plugin['pageSecond']] }
 
         resolve(plugin)
     })
@@ -128,19 +168,67 @@ async function _addPlugin(name, type, id) {
     })
 }
 
-
-async function _handlePluginsJSON(file) {
-    var config = require(file)
-    var plugs = []
-
-    if (config.plugins) {
-        for (var plugin of config.plugins) {
+/**
+ * Deactivate all the plugins
+ */
+async function _unloadPlugins() {
+    return new Promise((resolve, reject) => {
+        for (var plugin of masterPluginList.reverse()) {
+            plugin.deactivate(public)
         }
-    }
-
-    return Promise.all(plugs)
+        resolve(true)
+    })
 }
 
+/**
+ * Loads and activates the list of plugins
+ * @param {array} list - The list of plugins to load
+ */
+async function _requirePlugins(list) {
+    return new Promise((resolve, reject) => {
+        var depTree = new DepTree()
+        for (var plugin of list) {
+            if (plugin.dependencies) {
+                depTree.add(plugin.name, plugin.dependencies)
+            } else {
+                depTree.add(plugin.name)
+            }
+        }
+        var depList = depTree.resolve()
+        for (var plugin of depList) {
+            try {
+                let plug = require(`relaxed-${plugin}`)
+                masterPluginList.push(plug)
+                plug.activate(public)
+            } catch (error) {
+                if (/Cannot find module/g.test(error.message)) {
+                    reject(new Error(`Plugin relaxed-${plugin} not found, try installing with 'npm i -g relaxed-${plugin}'`))
+                }
+                reject(error)
+            }
+        }
+    })
+}
+
+/**
+ * Load plugin data from a json file
+ * @param {string} file - The file URL of the json file with plugin data
+ */
+async function _handlePluginsJSON(file) {
+    var config = require(file)
+
+    return new Promise((resolve, reject) => {
+        if (!config.plugins) {
+            resolve(false)
+        }
+        resolve(_requirePlugins(config.plugins))
+    })
+}
+
+/**
+ * Load plugin data by reading the comments
+ * @param {string} file - The file URL of the master pug file
+ */
 async function _handlePluginsComments(file) {
 
     var variables = function(string) {
@@ -167,33 +255,105 @@ async function _handlePluginsComments(file) {
             var match
 
             while(match = re.exec(data)) {
+                let obj = {}
+                obj.plugin = match[1]
+                if (match[2]) {
+                    obj.dependencies = match[2].split(', ')
+                }
+                if (match[3]) {
+                    obj.settings = variables(match[3])
+                }
             }
+            if (list.length == 0) {
+                resolve(false)
+            }
+            resolve(_requirePlugins(list))
 
         })
     })
 }
 
-
-_loadPlugins = async function(dir, master) {
+/**
+ * Load plugins from a json file or the pug file via comments
+ * @param {string} master - The URL of the file to load plugin data from
+ */
+async function _loadPlugins(master) {
     return new Promise((resolve, reject) => {
-        if (fs.existsSync(path.join(dir, '.relaxed.json'))) {
-            resolve(_handlePluginsJSON(path.join(dir, '.relaxed.json')))
+        if (path.extname(master) == 'json') {
+            resolve(_handlePluginsJSON(master))
 
         } else {
-            resolve(_handlePluginsComments(path.join(dir, master)))
+            resolve(_handlePluginsComments(master))
         }
     })
 }
+
+/**
+ * Expose plugin variables for other plugins
+ * @param {string} name - The name of the plugin
+ * @param {object} settings - The plugins settings to expose publicly
+ */
+async function _expose(name, settings) {
+    return new Promise((resolve, reject) => {
+        if (!plugins[name]) {
+            plugins[name] = {}
+        }
+        plugins[name].settings = settings
+        resolve(true)
+    })
+}
+
+/**
+ * Check a list of plugin managers to find plugin
+ * @param {string} name - The name of the plugin to check for
+ * @param {array} list - The list of items to check a plugin for
+ */
+function _inList(name, list) {
+    for (var item of list) {
+        if (item.name) {
+            return true
+        }
+    }
+    return false
+}
+
 
 /*
  * ========================================================
  *                Plugin Registers
  * ========================================================
  */
-
 async function _registerMixin(mixin) {
     return new Promise((resolve, reject) => {
-        
+        if (!mixin) {
+            reject(new NoPluginError('No mixin given'))
+        }
+
+        if (typeof mixin.plugin !== 'string') {
+            reject(new NoNameError('No plugin name provided'))
+        }
+
+        if (typeof mixin.mixin !== 'string') {
+            reject(new NoOptionError('No mixin provided'))
+        }
+
+        if (_inlist(mixin.plugin, mixins)) {
+            reject(new PluginExistsError('Mixin already registered'))
+        }
+
+        if (!/mixin/g.test(mixin.mixin) && !fs.existsSync(mixin.mixin)) {
+            reject(new Error('Mixin is not a valid pug, or pug file'))
+        }
+
+        if(fs.existsSync(mixin.mixin)) {
+            mixin.mixin = fs.readFileSync(mixin.mixin)
+        }
+
+        mixins.push(mixin)
+
+        _addPlugin(mixin.plugin, 'mixin', mixins.length-1)
+
+        resolve(true)
     })
 }
 
@@ -203,13 +363,17 @@ async function _registerMixin(mixin) {
  */
 async function _registerWatcher(watch) {
     return new Promise((resolve, reject) => {
+        if (!watch) {
+            reject(new NoPluginError('No watch given'))
+        }
+
         if (typeof watch.plugin !== 'string') {
-            reject(new Error('No plugin name provided'))
+            reject(new NoNameError('No plugin name provided'))
         }
 
         // Example: ['.custom.ext.file']
         if (watch.ext == []) {
-            reject(new Error('No extensions given'))
+            reject(new NoOptionError('No extensions given'))
         }
 
         for (var ext of watch.ext) {
@@ -219,7 +383,11 @@ async function _registerWatcher(watch) {
         }
 
         if (typeof watch.handler !== 'function') {
-            reject(new Error('No handler provided'))
+            reject(new NoOptionError('No handler provided'))
+        }
+
+        if (_inlist(watch.plugin, watchers)) {
+            reject(new PluginExistsError('Watcher already registered'))
         }
 
         watcher.push(watch)
@@ -232,43 +400,59 @@ async function _registerWatcher(watch) {
 
 /**
  * Register a pre pug handler (for manipulating pug files before rendering)
- * @param {pug} pre - The object for handling pre pug processing (raw pug files)
+ * @param {pug} pug - The object for handling pre pug processing (raw pug files)
  */
-async function _registerpug(pre) {
+async function _registerPug(pug) {
     return new Promise((resolve, reject) => {
-        if (typeof pre.plugin !== 'string') {
-            reject(new Error('No plugin name provided'))
+        if (!pug) {
+            reject(new NoPluginError('No pug given'))
         }
 
-        if (typeof pre.handler !== 'function') {
-            reject(new Error('No handler provided'))
+        if (typeof pug.plugin !== 'string') {
+            reject(new NoNameError('No plugin name provided'))
         }
 
-        pugs.push(pre)
+        if (typeof pug.handler !== 'function') {
+            reject(new NoOptionError('No handler provided'))
+        }
 
-        _addPlugin(pre.plugin, 'pug', pugs.length-1)
+        if (_inlist(pug.plugin, pugs)) {
+            reject(new PluginExistsError('Pre pug handler already registered'))
+        }
+
+        pugs.push(pug)
+
+        _addPlugin(pug.plugin, 'pug', pugs.length-1)
 
         resolve(true)
     })
 }
 
 /**
- * Register a post pug handler (for manipulating the rendered HTML string)
- * @param {html} post - The object for handling post pug processing (raw HTML string)
+ * Register a post pug (html) handler (for manipulating the rendered HTML string)
+ * @param {html} html - The object for handling post pug processing (raw HTML string)
  */
-async function _registerhtml(post) {
+async function _registerHTML(html) {
     return new Promise((resolve, reject) => {
-        if (typeof post.plugin !== 'string') {
-            reject(new Error('No plugin name provided'))
+        if (!html) {
+            reject(new NoPluginError('No html given'))
         }
 
-        if (typeof post.handler !== 'function') {
-            reject(new Error('No handler provided'))
+        if (typeof html.plugin !== 'string') {
+            reject(new NoNameError('No plugin name provided'))
         }
 
-        htmls.push(post)
+        if (typeof html.handler !== 'function') {
+            reject(new NoOptionError('No handler provided'))
+        }
 
-        _addPlugin(post.plugin, 'html', htmls.length-1)
+        if (_inlist(html.plugin, htmls)) {
+            reject(new PluginExistsError('HTML handler already registered'))
+        }
+
+        htmls.push(html)
+
+        _addPlugin(html.plugin, 'html', htmls.length-1)
 
         resolve(true)
     })
@@ -280,12 +464,20 @@ async function _registerhtml(post) {
  */
 async function _registerPageFirst(first) {
     return new Promise((resolve, reject) => {
+        if (!first) {
+            reject(new NoPluginError('No page first pass given'))
+        }
+
         if (typeof first.plugin !== 'string') {
-            reject(new Error('No plugin name provided'))
+            reject(new NoNameError('No plugin name provided'))
         }
 
         if (typeof first.handler !== 'function') {
-            reject(new Error('No handler provided'))
+            reject(new NoOptionError('No handler provided'))
+        }
+
+        if (_inlist(first.plugin, pageFirsts)) {
+            reject(new PluginExistsError('Page first pass handler already registered'))
         }
 
         pageFirsts.push(first)
@@ -302,12 +494,20 @@ async function _registerPageFirst(first) {
  */
 async function _registerPageSecond(second) {
     return new Promise((resolve, reject) => {
+        if (!second) {
+            reject(new NoPluginError('No page second pass given'))
+        }
+
         if (typeof second.plugin !== 'string') {
-            reject(new Error('No plugin name provided'))
+            reject(new NoNameError('No plugin name provided'))
         }
 
         if (typeof second.handler !== 'function') {
-            reject(new Error('No handler provided'))
+            reject(new NoOptionError('No handler provided'))
+        }
+
+        if (_inlist(second.plugin, pageSeconds)) {
+            reject(new PluginExistsError('Page second pass handler already registered'))
         }
 
         pageSeconds.push(second)
@@ -318,14 +518,44 @@ async function _registerPageSecond(second) {
     })
 }
 
+
+/*
+ * ========================================================
+ *                Plugin gets
+ * ========================================================
+ */
+function _getMixins() { return mixins }
+
+function _getWatchers() { return watcher }
+
+function _getPugs() { return pugs }
+
+function _getHTMLs() { return htmls }
+
+function _getPageFirsts() { return pageFirsts }
+
+function _getPageSeconds() { return pageSeconds }
+
 const public = {
     getPlugins        : _getPlugins,
     getPlugin         : _getPlugin,
     registerWatcher   : _registerWatcher,
-    registerpug    : _registerpug,
-    registerhtml   : _registerhtml,
+    registerPug       : _registerPug,
+    registerHTML      : _registerHTML,
     registerPageFirst : _registerPageFirst,
-    registerPageSecond: _registerPageSecond
+    registerPageSecond: _registerPageSecond,
+    expose            : _expose
 }
 
 exports.public = public
+
+const private = {
+    getMixins     : _getMixins,
+    getWatchers   : _getWatchers,
+    getPugs       : _getPugs,
+    getHTMLs      : _getHTMLs,
+    getPageFirsts : _getPageFirsts,
+    getPageSeconds: _getPageSeconds
+}
+
+exports.private = private
