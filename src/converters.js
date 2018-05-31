@@ -14,6 +14,7 @@ const SVGO            = require('svgo')
 
 const utils           = require('./utils')
 const generate        = require('./generators')
+const plugin          = require('./plugins')
 
 
 /*
@@ -201,15 +202,27 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var html
     var t0 = performance.now()
 
+    var pluginMixins = plugin.getMixins()
+
+    var mixString = ''
+
+    for (var plug of pluginMixins) {
+        mixString += plug.mixin + '\n'
+    }
+
     /*
      *            Generate HTML
      */
-    // TODO: Pre-pug hook
+    
+    var pluginPugs = plug.getPugs()
+    for (var plug of pluginPugs) {
+        await plug.handler(masterPath)
+    }
     if (masterPath.endsWith('.pug')) {
         try {
             var masterPug = fs.readFileSync(masterPath, 'utf8')
 
-            html = pug.render(builtinMixins + '\n' + masterPug, {
+            html = pug.render(mixString + builtinMixins + '\n' + masterPug, {
                 filename: masterPath,
                 fs: fs,
                 cheerio: cheerio,
@@ -239,6 +252,12 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     }
 
     html = `<html><body>${html}</body></html>`
+
+    var pluginHTMLs = plugin.getHTMLs()
+
+    for (var plug of pluginHTMLs) {
+        await plug.handler(html)
+    }
 
     // TODO: Post-pug hook
     await writeFile(tempHTML, html)
@@ -279,10 +298,18 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
     if (size) { options.size = size }
 
-    // TODO: page-first-pass hook
+    var pluginFirsts = plugin.getPageFirsts()
+
+    for (var plug of pluginFirsts) {
+        await plug.handler(page)
+    }
     await generate.bibliography(page)
 
-    // TODO: page-second-pass hook
+    var pluginSeconds = plugin.getPageSeconds()
+
+    for (var plug of pluginSeconds) {
+        await plug.handler(page)
+    }
     // TODO: add option to output full html from page
     
     await page.pdf(options)

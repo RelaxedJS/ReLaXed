@@ -7,7 +7,8 @@ const { performance } = require('perf_hooks')
 const path            = require('path')
 const fs              = require('fs')
 
-const converters      = require('./converters.js')
+const converters      = require('./converters')
+const plugin          = require('./plugins').private
 
 var input, output
 const version = require('../package.json').version
@@ -89,6 +90,12 @@ async function main () {
     console.log(colors.magenta.bold('Launching ReLaXed...'))
     const browser = await puppeteer.launch(puppeteerConfig);
     const page = await browser.newPage()
+
+    if(fs.existsSync(path.join(inputDir, '.relaxed.json'))) {
+        plugin.loadPlugins(path.join(inputDir, '.relaxed.json'))
+    } else {
+        plugin.loadPlugins(inputPath)
+    }
     
     page.on('pageerror', function (err) {
         console.log(colors.red('Page error: ' + err.toString()))
@@ -136,10 +143,30 @@ function watch (page) {
 
     }).on('change', (filepath) => {
 
-        if (!(['.pug', '.md', '.html', '.css',
-               '.scss', '.svg', '.mermaid', '.chart.js',
-               '.png', '.flowchart', '.flowchart.json', '.vegalite.json',
-               '.table.csv', 'htable.csv'].some(ext => filepath.endsWith(ext)))) { return }
+        var extlist = [
+            '.pug',
+            '.md',
+            '.html',
+            '.css',
+            '.scss',
+            '.svg',
+            '.mermaid',
+            '.chart.js',
+            '.png',
+            '.flowchart',
+            '.flowchart.json',
+            '.vegalite.json',
+            '.table.csv',
+            'htable.csv'
+        ]
+
+        var pluginWatcher = plugin.getWatchers()
+
+        for (var plug of pluginWatcher) {
+            extlist.concat(plug.ext)
+        }
+
+        if (!(extlist.some(ext => filepath.endsWith(ext)))) { return }
 
         var shortFileName = filepath.replace(inputDir, '')
 
@@ -177,6 +204,14 @@ function watch (page) {
 
         } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
             taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
+
+        } else {
+            for (var plug of pluginWatcher) {
+                if (plug.ext.some(ext => filepath.endsWith(ext))) {
+                    taskPromise = plug.handler(filepath)
+                    break
+                }
+            }
         }
 
         if (taskPromise) {
