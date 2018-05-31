@@ -20,6 +20,7 @@
     "colors": "^1.2.3",
     "commander": "^2.15.1",
     "csvtojson": "^1.1.9",
+    "deptree": "^1.0.0",
     "html2jade": "^0.8.6",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.1.0",
