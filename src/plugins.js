@@ -555,7 +555,9 @@ const private = {
     getPugs       : _getPugs,
     getHTMLs      : _getHTMLs,
     getPageFirsts : _getPageFirsts,
-    getPageSeconds: _getPageSeconds
+    getPageSeconds: _getPageSeconds,
+    loadPlugins   : _loadPlugins,
+    unloadPlugins : _unloadPlugins
 }
 
 exports.private = private
