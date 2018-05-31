@@ -212,7 +212,7 @@ exports.chartjsToPNG = async function (chartjsPath, page) {
 
   await writeFile(tempHTML, html)
   await page.setContent(html)
-  await page.waitForfunction(() => window.pngData)
+  await page.waitForFunction(() => window.pngData)
 
   const dataUrl = await page.evaluate(() => window.pngData)
   const {
