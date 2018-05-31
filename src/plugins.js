@@ -230,7 +230,6 @@ async function _handlePluginsJSON(file) {
  * @param {string} file - The file URL of the master pug file
  */
 async function _handlePluginsComments(file) {
-
     var variables = function(string) {
         var settings = {}
         var re = /(\w+)](\w+|['"][\w\s]+['"])/g
@@ -256,13 +255,14 @@ async function _handlePluginsComments(file) {
 
             while(match = re.exec(data)) {
                 let obj = {}
-                obj.plugin = match[1]
-                if (match[2]) {
-                    obj.dependencies = match[2].split(', ')
-                }
+                obj.name = match[2]
                 if (match[3]) {
-                    obj.settings = variables(match[3])
+                    obj.dependencies = match[3].split(', ')
                 }
+                if (match[4] && match[4] != '') {
+                    obj.settings = variables(match[4])
+                }
+                list.push(obj)
             }
             if (list.length == 0) {
                 resolve(false)
@@ -526,7 +526,7 @@ async function _registerPageSecond(second) {
  */
 function _getMixins() { return mixins }
 
-function _getWatchers() { return watcher }
+function _getWatchers() { return watchers }
 
 function _getPugs() { return pugs }
 

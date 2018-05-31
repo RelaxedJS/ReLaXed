@@ -14,7 +14,7 @@ const SVGO            = require('svgo')
 
 const utils           = require('./utils')
 const generate        = require('./generators')
-const plugin          = require('./plugins')
+const plugin          = require('./plugins').private
 
 
 /*

@@ -92,9 +92,9 @@ async function main () {
     const page = await browser.newPage()
 
     if(fs.existsSync(path.join(inputDir, '.relaxed.json'))) {
-        plugin.loadPlugins(path.join(inputDir, '.relaxed.json'))
+        await plugin.loadPlugins(path.join(inputDir, '.relaxed.json'))
     } else {
-        plugin.loadPlugins(inputPath)
+        await plugin.loadPlugins(inputPath)
     }
     
     page.on('pageerror', function (err) {
