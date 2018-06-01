@@ -1,0 +1,44 @@
+.header
+  object.logo(data='./relaxed-uni-logo.svg' type="image/svg+xml")
+
+.recipient
+  .name Dr. Eddie Thor
+  .institute Predatory Publishing Group
+  .address John Nicholson Street
+  .city EH1 RX2 Edinburgh
+
+.opening Dear editor,
+
+.main-text
+  :markdown-it
+    
+    We are submitting our manuscript entitled *"On the creation of beautiful PDF
+    files using yet another HTML converter but this one has a cool name"* to your
+    *Journal of Incremental Software*, which we believe is the best indicated to
+    publish this work (now that every bigger journal has said no).
+
+    In this paper we present ReLaXed, a new framework for the interactive
+    generation of PDFs using web technologies, in particular the *Pug* language.
+    While many other software exist to produce high quality PDF files, they
+    generally lack the cool packaging and novelty of Relaxed.JS (and by
+    "novelty", we really mean "recentness"). At this time, Relaxed.JS already
+    has one active user, and we expect this number to grow several-fold after
+    publication in your journal.
+
+    We believe that this new piece of software would find an important echo in
+    your audience, in particular among developers interested in the creation of
+    beautiful PDF files using web technologies, in particular the *Pug*
+    language. Please publish us pretty please.
+
+.closing Yours sincelerely,
+
+img.signature(src='signature.svg')
+
+.sender
+  .name Axel Red
+  .title Head of Communications
+  .institute Relaxed University
+  .address United Kingdom
+
+style
+  include:scss letter.scss

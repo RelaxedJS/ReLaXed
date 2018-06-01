@@ -1,0 +1,151 @@
+@import 'https://cdnjs.cloudflare.com/ajax/libs/semantic-ui/2.3.0/semantic.min.css';
+@import 'https://afeld.github.io/emoji-css/emoji.css';
+
+$primary_color: #b4588c;
+$page-width: 17cm;
+
+@page {
+  margin: 1cm 1cm 2cm 0cm;
+}
+html {
+  padding-left: 1cm;
+  padding-right: 1cm;
+  font-family: 'Lato';
+  font-size: 14px !important;
+}
+body {
+  margin-left: 1cm;
+}
+#title {
+  font-weight: bold;
+  font-size: 2.5em;
+}
+
+.summary {
+  background-color: lighten($primary_color, 33%);
+}
+
+h2 {
+  font-size: 1.8em;
+}
+
+p {
+  line-height: 1.5em;
+  font-size: 1.1em !important;
+  text-align: justify;
+ }
+
+a {
+  text-decoration: underline;
+  color: inherit;
+}
+
+$sidebar-width: 0.25in;
+$sidebar-height: 943px;
+
+.report-sidebar {
+  position: fixed;
+  left: -$sidebar-width;
+  top: 0;
+  width: $sidebar-width;
+  height: $sidebar-height;
+  writing-mode: vertical-rl;
+  border-top: $sidebar-width solid transparent;
+  border-left: $sidebar-width solid lighten($primary_color, 10%);
+  border-bottom: $sidebar-width solid transparent;
+  p {
+    text-align: center;
+    color: lighten($primary_color, 30%);
+    margin-top: -1.55em;
+  }
+}
+
+.block-center {
+  display: block;
+  margin: 0 auto;
+}
+
+.mermaid-svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  .node {
+    rect {
+      fill: none;
+      rx: 5px;
+      ry: 5px;
+      stroke: black;
+
+    }
+  }
+  .edgelabel {
+    background: white;
+    color: #444;
+  }
+}
+
+.message, figure {
+  page-break-inside: avoid;
+}
+
+.message {
+  margin-bottom: 1em !important;
+}
+
+
+figure {
+  margin-top: 0.5em;
+  margin-bottom: 1em;
+  padding: 0.5em;
+  &> .panel {
+    position: relative;
+    display: inline-block;
+    vertical-align: top;
+    width: 100%;
+    &> .label {
+      font-weight: bold;
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+  }
+  &.float-left {
+    margin-left: -1em !important;
+    margin-right: 2em !important;
+    margin-top: 1em;
+    margin-bottom: 1em;
+    float: left;
+  }
+  figcaption {
+    font-size: 0.75em;
+    text-align: justify;
+    width: 100%;
+    margin-top: 1em;
+    &> .reference, .title {
+      font-weight: bold;
+
+      display: inline;
+      margin-right: 0.5em;
+    }
+    &> .reference {
+      color: darken($primary_color, 50%);
+      &::after {
+        content: ': ';
+      }
+    }
+    &> .title {
+      color: darken($primary_color, 40%);
+    }
+    &> .caption {
+      display: inline;
+    }
+  }
+}
+
+
+@for $i from 1 to 20 {
+  .width-#{$i}cm { width: #{10 * $i}mm !important; }
+}
+@for $i from 1 to 20 {
+  .top-#{$i}mm { margin-top: #{$i}mm; }
+}

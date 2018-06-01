@@ -22,22 +22,24 @@ const plugin          = require('./plugins').private
  * ==============================================================
  */
 exports.mermaidToSvg = async function (mermaidPath, page) {
-    var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
-    var html = utils.formatTemplate('mermaid', { mermaidSpec })
+  var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
+  var html = utils.formatTemplate('mermaid', {
+    mermaidSpec
+  })
 
-    await page.setContent(html)
-    await page.waitForSelector('#graph svg')
+  await page.setContent(html)
+  await page.waitForSelector('#graph svg')
 
-    var svg = await page.evaluate(function () {
-        var el = document.querySelector('#graph svg')
-        el.removeAttribute('height')
-        el.classList.add('mermaid-svg')
-        return el.outerHTML
-    })
+  var svg = await page.evaluate(function () {
+    var el = document.querySelector('#graph svg')
+    el.removeAttribute('height')
+    el.classList.add('mermaid-svg')
+    return el.outerHTML
+  })
 
-    var svgPath = mermaidPath.substr(0, mermaidPath.lastIndexOf('.')) + '.svg'
+  var svgPath = mermaidPath.substr(0, mermaidPath.lastIndexOf('.')) + '.svg'
 
-    await writeFile(svgPath, svg)
+  await writeFile(svgPath, svg)
 }
 
 /*
@@ -46,38 +48,41 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
  * ==============================================================
  */
 exports.flowchartToSvg = async function (flowchartPath, page) {
-    var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
-    var flowchartConf = '{}'
+  var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
+  var flowchartConf = '{}'
 
-    var possibleConfs = [
-        path.join(path.resolve(flowchartPath, '..'), 'flowchart.default.json'),
-        flowchartPath + '.json'
-    ]
+  var possibleConfs = [
+    path.join(path.resolve(flowchartPath, '..'), 'flowchart.default.json'),
+    flowchartPath + '.json'
+  ]
 
-    for (var myPath of possibleConfs) {
-        if (fs.existsSync(myPath)) {
-            flowchartConf = fs.readFileSync(myPath, 'utf8')
-        }
+  for (var myPath of possibleConfs) {
+    if (fs.existsSync(myPath)) {
+      flowchartConf = fs.readFileSync(myPath, 'utf8')
     }
+  }
 
-    var html = utils.formatTemplate('flowchart', { flowchartSpec, flowchartConf })
+  var html = utils.formatTemplate('flowchart', {
+    flowchartSpec,
+    flowchartConf
+  })
 
-    await page.setContent(html)
-    await page.waitForSelector('#chart svg')
+  await page.setContent(html)
+  await page.waitForSelector('#chart svg')
 
-    var svg = await page.evaluate(function () {
-        var el = document.querySelector('#chart svg')
+  var svg = await page.evaluate(function () {
+    var el = document.querySelector('#chart svg')
 
-        el.removeAttribute('height')
-        el.removeAttribute('width')
-        el.classList.add('flowchart-svg')
+    el.removeAttribute('height')
+    el.removeAttribute('width')
+    el.classList.add('flowchart-svg')
 
-        return el.outerHTML
-    })
+    return el.outerHTML
+  })
 
-    var svgPath = flowchartPath.substr(0, flowchartPath.lastIndexOf('.')) + '.svg'
+  var svgPath = flowchartPath.substr(0, flowchartPath.lastIndexOf('.')) + '.svg'
 
-    await writeFile(svgPath, svg)
+  await writeFile(svgPath, svg)
 }
 
 /*
@@ -86,24 +91,26 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
  * ==============================================================
  */
 exports.vegaliteToSvg = async function (vegalitePath, page) {
-    var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
-    var html = utils.formatTemplate('vegalite', { vegaliteSpec })
+  var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
+  var html = utils.formatTemplate('vegalite', {
+    vegaliteSpec
+  })
 
-    await page.setContent(html)
-    await page.waitForSelector('#vis svg')
+  await page.setContent(html)
+  await page.waitForSelector('#vis svg')
 
-    var svg = await page.evaluate(function () {
-        var el = document.querySelector('#vis svg')
+  var svg = await page.evaluate(function () {
+    var el = document.querySelector('#vis svg')
 
-        el.removeAttribute('height')
-        el.removeAttribute('width')
+    el.removeAttribute('height')
+    el.removeAttribute('width')
 
-        return el.outerHTML
-    })
+    return el.outerHTML
+  })
 
-    var svgPath = vegalitePath.substr(0, vegalitePath.length - '.vegalite.json'.length) + '.svg'
+  var svgPath = vegalitePath.substr(0, vegalitePath.length - '.vegalite.json'.length) + '.svg'
 
-    await writeFile(svgPath, svg)
+  await writeFile(svgPath, svg)
 }
 
 /*
@@ -112,24 +119,37 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
  * ==============================================================
  */
 exports.svgToOptimizedSvg = async function (svgPath) {
-    var svgdata = fs.readFileSync(svgPath, 'utf8')
+  var svgdata = fs.readFileSync(svgPath, 'utf8')
 
-    var svgo = new SVGO({
-        plugins: [{ removeNonInheritableGroupAttrs: false },
-            { cleanupAttrs: false },
-            { moveGroupAttrsToElems: false },
-            { collapseGroups: false },
-            { removeUnknownsAndDefaults: false },
-            { cleanupIDs:
-                { prefix: path.basename(svgPath) }
-            }
-        ]
-    })
+  var svgo = new SVGO({
+    plugins: [
+      {
+        removeNonInheritableGroupAttrs: false
+      },
+      {
+        cleanupAttrs: false
+      },
+      {
+        moveGroupAttrsToElems: false
+      },
+      {
+        collapseGroups: false
+      },
+      {
+        removeUnknownsAndDefaults: false
+      },
+      {
+        cleanupIDs: {
+          prefix: path.basename(svgPath)
+        }
+      }
+    ]
+  })
 
-    var svgoPath = svgPath.substr(0, svgPath.length - '.o.svg'.length) + '_optimized.svg'
-    var svgoData = await svgo.optimize(svgdata)
+  var svgoPath = svgPath.substr(0, svgPath.length - '.o.svg'.length) + '_optimized.svg'
+  var svgoData = await svgo.optimize(svgdata)
 
-    await writeFile(svgoPath, svgoData.data)
+  await writeFile(svgoPath, svgoData.data)
 }
 
 /*
@@ -138,35 +158,42 @@ exports.svgToOptimizedSvg = async function (svgPath) {
  * ==============================================================
  */
 exports.tableToPug = function (tablePath) {
-    var extension, header
-    var rows = []
+  var extension, header
+  var rows = []
 
-    csv({noheader: true})
+  csv({noheader: true})
     .fromFile(tablePath)
-    .on('csv', (csvRow) => { rows.push(csvRow) })
+    .on('csv', (csvRow) => {
+      rows.push(csvRow)
+    })
     .on('done', (error) => {
-        if (error) {
-            console.log('error', error)
-
+      if (error) {
+        console.log('error', error)
+      } else {
+        if (tablePath.endsWith('.htable.csv')) {
+          extension = '.htable.csv'
+          header = rows.shift()
         } else {
-            if (tablePath.endsWith('.htable.csv')) {
-                extension = '.htable.csv'
-                header = rows.shift()
-
-            } else {
-                extension = '.table.csv'
-                header = null
-            }
-
-            var html = utils.formatTemplate('table', { header: header, tbody: rows })
-            var pugPath = tablePath.substr(0,tablePath.length - extension.length) + '.pug'
-
-            html2jade.convertHtml(html, {bodyless: true}, function (err, jade) {
-                if (err) { console.log(err) }
-                
-                writeFile(pugPath, jade)
-            })
+          extension = '.table.csv'
+          header = null
         }
+
+        var html = utils.formatTemplate('table', {
+          header: header,
+          tbody: rows
+        })
+        var pugPath = tablePath.substr(0, tablePath.length - extension.length) + '.pug'
+
+        html2jade.convertHtml(html, {
+          bodyless: true
+        }, function (err, jade) {
+          if (err) {
+            console.log(err)
+          }
+
+          writeFile(pugPath, jade)
+        })
+      }
     })
 }
 
@@ -176,19 +203,23 @@ exports.tableToPug = function (tablePath) {
  * ==============================================================
  */
 exports.chartjsToPNG = async function (chartjsPath, page) {
-    var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
-    var html      = utils.formatTemplate('chartjs', { chartSpec })
-    var tempHTML  = chartjsPath + '.htm'
+  var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
+  var html = utils.formatTemplate('chartjs', {
+    chartSpec
+  })
+  var tempHTML = chartjsPath + '.htm'
 
-    await writeFile(tempHTML, html)
-    await page.setContent(html)
-    await page.waitForFunction(() => window.pngData)
+  await writeFile(tempHTML, html)
+  await page.setContent(html)
+  await page.waitForFunction(() => window.pngData)
 
-    const dataUrl    = await page.evaluate(() => window.pngData)
-    const { buffer } = utils.parseDataUrl(dataUrl)
-    var pngPath      = chartjsPath.substr(0, chartjsPath.length - '.chart.js'.length) + '.png'
+  const dataUrl = await page.evaluate(() => window.pngData)
+  const {
+    buffer
+  } = utils.parseDataUrl(dataUrl)
+  var pngPath = chartjsPath.substr(0, chartjsPath.length - '.chart.js'.length) + '.png'
 
-    await writeFile(pngPath, buffer, 'base64')
+  await writeFile(pngPath, buffer, 'base64')
 }
 
 /*
@@ -243,11 +274,11 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
             console.error(colors.red('There was a Pug error (see above)'))
             return
         }
-
-    } else {  html = fs.readFileSync(masterPath, 'utf8') }
-
-    if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
-        html = await utils.asyncMathjax(html)
+      })
+    } catch (error) {
+      console.log(error.message)
+      console.error(colors.red('There was a Pug error (see above)'))
+      return
     }
 
     html = `<html><body>${html}</body></html>`
@@ -321,18 +352,22 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
  *          Get Header and Footer template
  */
 async function getHeaderFooter(page) {
-    var head = await page.$eval('#page-header', element => element.outerHTML)
-        .catch(error => '')
-    var foot = await page.$eval('#page-footer', element => element.outerHTML)
-        .catch(error => '')
+  var head = await page.$eval('#page-header', element => element.outerHTML)
+    .catch(error => '')
+  var foot = await page.$eval('#page-footer', element => element.outerHTML)
+    .catch(error => '')
 
-    if(head != '' && foot == '') { foot = '<span></span>' }
-    if(foot != '' && head == '') { head = '<span></span>' }
+  if (head !== '' && foot === '') {
+    foot = '<span></span>'
+  }
+  if (foot !== '' && head === '') {
+    head = '<span></span>'
+  }
 
-    return new Promise((resolve, reject) => {
-        resolve({
-            head: head,
-            foot: foot
-        })
+  return new Promise((resolve, reject) => {
+    resolve({
+      head: head,
+      foot: foot
     })
+  })
 }

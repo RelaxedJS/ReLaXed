@@ -66,6 +66,7 @@ typings/
 
 test/samples/*/master.pdf
 test/samples/*/master.png
+test/samples/*/last_test_result.png
 test/samples/*/diff.png
 test/samples/*/master_temp.htm
 
