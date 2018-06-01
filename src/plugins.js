@@ -1,6 +1,7 @@
 const fs      = require('fs')
 const path    = require('path')
 const DepTree = require('deptree')
+const yaml    = require('yaml')
 
 /*
  * ========================================================
@@ -187,11 +188,19 @@ async function _unloadPlugins() {
 async function _requirePlugins(list) {
     return new Promise((resolve, reject) => {
         var depTree = new DepTree()
+        var settings = {}
         for (var plugin of list) {
-            if (plugin.dependencies) {
+            let name = Object.keys(plugin)[0]
+            let obj = plugin[name]
+            if (obj.dependencies) {
                 depTree.add(plugin.name, plugin.dependencies)
             } else {
                 depTree.add(plugin.name)
+            }
+            for (var set in obj) {
+                if (set != 'dependencies') {
+                    settings[set] = obj[set]
+                }
             }
         }
         var depList = depTree.resolve()
@@ -199,7 +208,7 @@ async function _requirePlugins(list) {
             try {
                 let plug = require(`relaxed-${plugin}`)
                 masterPluginList.push(plug)
-                plug.activate(public)
+                plug.activate(public, settings)
             } catch (error) {
                 if (/Cannot find module/g.test(error.message)) {
                     reject(new Error(`Plugin relaxed-${plugin} not found, try installing with 'npm i -g relaxed-${plugin}'`))
@@ -214,8 +223,19 @@ async function _requirePlugins(list) {
  * Load plugin data from a json file
  * @param {string} file - The file URL of the json file with plugin data
  */
-async function _handlePluginsJSON(file) {
-    var config = require(file)
+async function _handlePluginsConfigFile(file) {
+    var config
+    switch(path.extname(file)) {
+        case 'yml':
+            config = yaml.eval(fs.readFileSync(file))
+            break
+        case 'yaml':
+            config = yaml.eval(fs.readFileSync(file))
+            break
+        case 'json':
+            config = require(file)
+            break
+    }
 
     return new Promise((resolve, reject) => {
         if (!config.plugins) {
@@ -279,8 +299,8 @@ async function _handlePluginsComments(file) {
  */
 async function _loadPlugins(master) {
     return new Promise((resolve, reject) => {
-        if (path.extname(master) == 'json') {
-            resolve(_handlePluginsJSON(master))
+        if (['yml', 'yaml', 'json'].indexOf(path.extname(master)) != -1) {
+            resolve(_handlePluginsConfigFile(master))
 
         } else {
             resolve(_handlePluginsComments(master))
