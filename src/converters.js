@@ -16,7 +16,6 @@ const utils           = require('./utils')
 const generate        = require('./generators')
 const plugin          = require('./plugins').private
 
-
 /*
  * ==============================================================
  *                      Mermaid
@@ -214,7 +213,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
      *            Generate HTML
      */
     
-    var pluginPugs = plug.getPugs()
+    var pluginPugs = plugin.getPugs()
     for (var plug of pluginPugs) {
         await plug.handler(masterPath)
     }
