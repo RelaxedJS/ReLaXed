@@ -3,6 +3,14 @@ const path    = require('path')
 const DepTree = require('deptree')
 const yaml    = require('yaml')
 
+
+// TODO: Add a priority system to registers for when they run
+//       default to 0 (all plugins run not caring order)
+//       (-) Run first
+//       (+) Run after
+//       "before": ["plugin"]
+//       "after": ["plugin"]
+
 /*
  * ========================================================
  *                          Errors
@@ -185,7 +193,7 @@ async function _unloadPlugins() {
  * Loads and activates the list of plugins
  * @param {array} list - The list of plugins to load
  */
-async function _requirePlugins(list) {
+function _requirePlugins(list) {
     return new Promise((resolve, reject) => {
         var depTree = new DepTree()
         var settings = {}
@@ -216,6 +224,7 @@ async function _requirePlugins(list) {
                 reject(error)
             }
         }
+        resolve(true)
     })
 }
 
@@ -237,11 +246,15 @@ async function _handlePluginsConfigFile(file) {
             break
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
         if (!config.plugins) {
             resolve(false)
         }
-        resolve(_requirePlugins(config.plugins))
+        var result = await _requirePlugins(config.plugins)
+        .catch(error => {
+            reject(error)
+        })
+        resolve(result)
     })
 }
 
@@ -263,14 +276,14 @@ async function _handlePluginsComments(file) {
     }
 
     return new Promise((resolve, reject) => {
-        fs.readFile(file, (error, data) => {
+        fs.readFile(file, async (error, data) => {
             if (error) { reject(error) }
 
             var list = []
 
             data = data.toString()
 
-            var re = /\/\/-\suse-plugin:\s((\w+)(\([\w,\s]+\)){0,1}(.*))/gm
+            var re = /\/\/-\suse-plugin:\s(([\w-]+)(\([\w,\s]+\)){0,1}(.*))/gm
             var match
 
             while(match = re.exec(data)) {
@@ -287,7 +300,11 @@ async function _handlePluginsComments(file) {
             if (list.length == 0) {
                 resolve(false)
             }
-            resolve(_requirePlugins(list))
+            var result = await _requirePlugins(list)
+            .catch(error => {
+                reject(error)
+            })
+            resolve(result)
 
         })
     })
@@ -298,13 +315,21 @@ async function _handlePluginsComments(file) {
  * @param {string} master - The URL of the file to load plugin data from
  */
 async function _loadPlugins(master) {
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+        var result
         if (['yml', 'yaml', 'json'].indexOf(path.extname(master)) != -1) {
-            resolve(_handlePluginsConfigFile(master))
+            result = await _handlePluginsConfigFile(master)
+            .catch(error => {
+                reject(error)
+            })
 
         } else {
-            resolve(_handlePluginsComments(master))
+            result = await _handlePluginsComments(master)
+            .catch(error => {
+                reject(error)
+            })
         }
+        resolve(result)
     })
 }
 
@@ -349,7 +374,7 @@ async function _registerMixin(plugin, mixin) {
             reject(new NoOptionError('No mixin provided'))
         }
 
-        if (_inlist(plugin, mixins)) {
+        if (_inList(plugin, mixins)) {
             reject(new PluginExistsError('Mixin already registered'))
         }
 
@@ -358,7 +383,7 @@ async function _registerMixin(plugin, mixin) {
         }
 
         if(fs.existsSync(mixin)) {
-            mixin = fs.readFileSync(mixin)
+            mixin = fs.readFileSync(mixin).toString()
         }
 
         mixins.push({
@@ -391,9 +416,9 @@ async function _registerWatcher(plugin, ext, watch) {
             reject(new NoOptionError('No extensions given'))
         }
 
-        for (var ext of ext) {
-            if (!/\.[\w\.\d]+/g.test(ext)) {
-                reject(new Error(`String: '${ext}' is not a valid extension`))
+        for (var e of ext) {
+            if (!/\.[\w\.]+/g.test(e)) {
+                reject(new Error(`String: '${e}' is not a valid extension`))
             }
         }
 
@@ -401,17 +426,17 @@ async function _registerWatcher(plugin, ext, watch) {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(plugin, watchers)) {
+        if (_inList(plugin, watchers)) {
             reject(new PluginExistsError('Watcher already registered'))
         }
 
-        watcher.push({
+        watchers.push({
             plugin: plugin,
             ext: ext,
             handler: watch
         })
 
-        _addPlugin(plugin, 'watcher', watcher.length-1)
+        _addPlugin(plugin, 'watcher', watchers.length-1)
 
         resolve(true)
     })
@@ -431,7 +456,7 @@ async function _registerPug(plugin, pug) {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(plugin, pugs)) {
+        if (_inList(plugin, pugs)) {
             reject(new PluginExistsError('Pre pug handler already registered'))
         }
 
@@ -460,7 +485,7 @@ async function _registerHTML(plugin, html) {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(plugin, htmls)) {
+        if (_inList(plugin, htmls)) {
             reject(new PluginExistsError('HTML handler already registered'))
         }
 
@@ -489,7 +514,7 @@ async function _registerPageFirst(plugin, first) {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(plugin, pageFirsts)) {
+        if (_inList(plugin, pageFirsts)) {
             reject(new PluginExistsError('Page first pass handler already registered'))
         }
 
@@ -518,7 +543,7 @@ async function _registerPageSecond(plugin, second) {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(plugin, pageSeconds)) {
+        if (_inList(plugin, pageSeconds)) {
             reject(new PluginExistsError('Page second pass handler already registered'))
         }
 
@@ -554,6 +579,7 @@ function _getPageSeconds() { return pageSeconds }
 const public = {
     getPlugins        : _getPlugins,
     getPlugin         : _getPlugin,
+    registerMixin     : _registerMixin,
     registerWatcher   : _registerWatcher,
     registerPug       : _registerPug,
     registerHTML      : _registerHTML,
@@ -572,7 +598,9 @@ const private = {
     getPageFirsts : _getPageFirsts,
     getPageSeconds: _getPageSeconds,
     loadPlugins   : _loadPlugins,
-    unloadPlugins : _unloadPlugins
+    unloadPlugins : _unloadPlugins,
+    getPlugins    : _getPlugins,
+    getPlugin     : _getPlugin
 }
 
 exports.private = private

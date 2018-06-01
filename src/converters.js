@@ -255,7 +255,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var pluginHTMLs = plugin.getHTMLs()
 
     for (var plug of pluginHTMLs) {
-        await plug.handler(html)
+        html = await plug.handler(html)
     }
 
     // TODO: Post-pug hook

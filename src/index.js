@@ -93,6 +93,13 @@ async function main () {
 
     if(fs.existsSync(path.join(inputDir, '.relaxed.json'))) {
         await plugin.loadPlugins(path.join(inputDir, '.relaxed.json'))
+        
+    } else if(fs.existsSync(path.join(inputDir, '.relaxed.yaml'))) {
+        await plugin.loadPlugins(path.join(inputDir, '.relaxed.yaml'))
+
+    } else if(fs.existsSync(path.join(inputDir, '.relaxed.yml'))) {
+        await plugin.loadPlugins(path.join(inputDir, '.relaxed.yml'))
+
     } else {
         await plugin.loadPlugins(inputPath)
     }
@@ -163,7 +170,7 @@ function watch (page) {
         var pluginWatcher = plugin.getWatchers()
 
         for (var plug of pluginWatcher) {
-            extlist.concat(plug.ext)
+            extlist = extlist.concat(plug.ext)
         }
 
         if (!(extlist.some(ext => filepath.endsWith(ext)))) { return }
