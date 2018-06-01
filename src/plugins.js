@@ -310,15 +310,15 @@ async function _loadPlugins(master) {
 
 /**
  * Expose plugin variables for other plugins
- * @param {string} name - The name of the plugin
+ * @param {string} plugin - The name of the plugin
  * @param {object} settings - The plugins settings to expose publicly
  */
-async function _expose(name, settings) {
+async function _expose(plugin, settings) {
     return new Promise((resolve, reject) => {
-        if (!plugins[name]) {
-            plugins[name] = {}
+        if (!plugins[plugin]) {
+            plugins[plugin] = {}
         }
-        plugins[name].settings = settings
+        plugins[plugin].settings = settings
         resolve(true)
     })
 }
@@ -343,35 +343,30 @@ function _inList(name, list) {
  *                Plugin Registers
  * ========================================================
  */
-async function _registerMixin(mixin) {
+async function _registerMixin(plugin, mixin) {
     return new Promise((resolve, reject) => {
-        if (!mixin) {
-            reject(new NoPluginError('No mixin given'))
-        }
-
-        if (typeof mixin.plugin !== 'string') {
-            reject(new NoNameError('No plugin name provided'))
-        }
-
-        if (typeof mixin.mixin !== 'string') {
+        if (!mixin || typeof mixin !== 'string') {
             reject(new NoOptionError('No mixin provided'))
         }
 
-        if (_inlist(mixin.plugin, mixins)) {
+        if (_inlist(plugin, mixins)) {
             reject(new PluginExistsError('Mixin already registered'))
         }
 
-        if (!/mixin/g.test(mixin.mixin) && !fs.existsSync(mixin.mixin)) {
+        if (!/mixin/g.test(mixin) && !fs.existsSync(mixin)) {
             reject(new Error('Mixin is not a valid pug, or pug file'))
         }
 
-        if(fs.existsSync(mixin.mixin)) {
-            mixin.mixin = fs.readFileSync(mixin.mixin)
+        if(fs.existsSync(mixin)) {
+            mixin = fs.readFileSync(mixin)
         }
 
-        mixins.push(mixin)
+        mixins.push({
+            plugin: plugin,
+            mixin: mixin
+        })
 
-        _addPlugin(mixin.plugin, 'mixin', mixins.length-1)
+        _addPlugin(plugin, 'mixin', mixins.length-1)
 
         resolve(true)
     })
@@ -381,38 +376,42 @@ async function _registerMixin(mixin) {
  * Register a new file watcher
  * @param {watcher} watch - The object describing the file to watch for and handle
  */
-async function _registerWatcher(watch) {
+async function _registerWatcher(plugin, ext, watch) {
     return new Promise((resolve, reject) => {
         if (!watch) {
             reject(new NoPluginError('No watch given'))
         }
 
-        if (typeof watch.plugin !== 'string') {
+        if (!plugin || typeof plugin !== 'string') {
             reject(new NoNameError('No plugin name provided'))
         }
 
         // Example: ['.custom.ext.file']
-        if (watch.ext == []) {
+        if (!ext || typeof ext !== 'object' || ext.length == 0) {
             reject(new NoOptionError('No extensions given'))
         }
 
-        for (var ext of watch.ext) {
+        for (var ext of ext) {
             if (!/\.[\w\.\d]+/g.test(ext)) {
                 reject(new Error(`String: '${ext}' is not a valid extension`))
             }
         }
 
-        if (typeof watch.handler !== 'function') {
+        if (!watch || typeof watch !== 'function') {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(watch.plugin, watchers)) {
+        if (_inlist(plugin, watchers)) {
             reject(new PluginExistsError('Watcher already registered'))
         }
 
-        watcher.push(watch)
+        watcher.push({
+            plugin: plugin,
+            ext: ext,
+            handler: watch
+        })
 
-        _addPlugin(watch.plugin, 'watcher', watcher.length-1)
+        _addPlugin(plugin, 'watcher', watcher.length-1)
 
         resolve(true)
     })
@@ -422,27 +421,26 @@ async function _registerWatcher(watch) {
  * Register a pre pug handler (for manipulating pug files before rendering)
  * @param {pug} pug - The object for handling pre pug processing (raw pug files)
  */
-async function _registerPug(pug) {
+async function _registerPug(plugin, pug) {
     return new Promise((resolve, reject) => {
-        if (!pug) {
-            reject(new NoPluginError('No pug given'))
-        }
-
-        if (typeof pug.plugin !== 'string') {
+        if (!plugin || typeof plugin !== 'string') {
             reject(new NoNameError('No plugin name provided'))
         }
 
-        if (typeof pug.handler !== 'function') {
+        if (!pug || typeof pug !== 'function') {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(pug.plugin, pugs)) {
+        if (_inlist(plugin, pugs)) {
             reject(new PluginExistsError('Pre pug handler already registered'))
         }
 
-        pugs.push(pug)
+        pugs.push({
+            plugin: plugin,
+            handler: pug
+        })
 
-        _addPlugin(pug.plugin, 'pug', pugs.length-1)
+        _addPlugin(plugin, 'pug', pugs.length-1)
 
         resolve(true)
     })
@@ -452,27 +450,26 @@ async function _registerPug(pug) {
  * Register a post pug (html) handler (for manipulating the rendered HTML string)
  * @param {html} html - The object for handling post pug processing (raw HTML string)
  */
-async function _registerHTML(html) {
+async function _registerHTML(plugin, html) {
     return new Promise((resolve, reject) => {
-        if (!html) {
-            reject(new NoPluginError('No html given'))
-        }
-
-        if (typeof html.plugin !== 'string') {
+        if (!plugin || typeof plugin !== 'string') {
             reject(new NoNameError('No plugin name provided'))
         }
 
-        if (typeof html.handler !== 'function') {
+        if (!html || typeof html !== 'function') {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(html.plugin, htmls)) {
+        if (_inlist(plugin, htmls)) {
             reject(new PluginExistsError('HTML handler already registered'))
         }
 
-        htmls.push(html)
+        htmls.push({
+            plugin: plugin,
+            handler: html
+        })
 
-        _addPlugin(html.plugin, 'html', htmls.length-1)
+        _addPlugin(plugin, 'html', htmls.length-1)
 
         resolve(true)
     })
@@ -482,27 +479,26 @@ async function _registerHTML(html) {
  * Register a first pass page handler (generate place holder content)
  * @param {pageFirst} first - The object for manipulating page, first pass
  */
-async function _registerPageFirst(first) {
+async function _registerPageFirst(plugin, first) {
     return new Promise((resolve, reject) => {
-        if (!first) {
-            reject(new NoPluginError('No page first pass given'))
-        }
-
-        if (typeof first.plugin !== 'string') {
+        if (!plugin || typeof plugin !== 'string') {
             reject(new NoNameError('No plugin name provided'))
         }
 
-        if (typeof first.handler !== 'function') {
+        if (!first || typeof first !== 'function') {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(first.plugin, pageFirsts)) {
+        if (_inlist(plugin, pageFirsts)) {
             reject(new PluginExistsError('Page first pass handler already registered'))
         }
 
-        pageFirsts.push(first)
+        pageFirsts.push({
+            plugin: plugin,
+            handler: first
+        })
 
-        _addPlugin(first.plugin, 'pageFirst', pageFirsts.length-1)
+        _addPlugin(plugin, 'pageFirst', pageFirsts.length-1)
 
         resolve(true)
     })
@@ -512,27 +508,26 @@ async function _registerPageFirst(first) {
  * Register a first pass page handler (generate place holder content)
  * @param {pageFirst} second - The object for manipulating page, second pass
  */
-async function _registerPageSecond(second) {
+async function _registerPageSecond(plugin, second) {
     return new Promise((resolve, reject) => {
-        if (!second) {
-            reject(new NoPluginError('No page second pass given'))
-        }
-
-        if (typeof second.plugin !== 'string') {
+        if (!plugin || typeof plugin !== 'string') {
             reject(new NoNameError('No plugin name provided'))
         }
 
-        if (typeof second.handler !== 'function') {
+        if (!second || typeof second !== 'function') {
             reject(new NoOptionError('No handler provided'))
         }
 
-        if (_inlist(second.plugin, pageSeconds)) {
+        if (_inlist(plugin, pageSeconds)) {
             reject(new PluginExistsError('Page second pass handler already registered'))
         }
 
-        pageSeconds.push(second)
+        pageSeconds.push({
+            plugin: plugin,
+            handler: second
+        })
 
-        _addPlugin(second.plugin, 'pageSecond', pageSeconds.length-1)
+        _addPlugin(plugin, 'pageSecond', pageSeconds.length-1)
 
         resolve(true)
     })
