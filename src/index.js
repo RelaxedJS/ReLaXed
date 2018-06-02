@@ -93,19 +93,6 @@ async function main () {
     console.log(colors.magenta.bold('Launching ReLaXed...'))
     const browser = await puppeteer.launch(puppeteerConfig);
     const page = await browser.newPage()
-
-    if(fs.existsSync(path.join(inputDir, 'config.json'))) {
-        await plugin.loadPlugins(path.join(inputDir, 'config.json'))
-        
-    } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
-        await plugin.loadPlugins(path.join(inputDir, 'config.yaml'))
-
-    } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
-        await plugin.loadPlugins(path.join(inputDir, 'config.yml'))
-
-    } else {
-        await plugin.loadPlugins(inputPath)
-    }
     
     page.on('pageerror', function (err) {
         console.log(colors.red('Page error: ' + err.toString()))
@@ -114,8 +101,36 @@ async function main () {
         console.log(colors.red('Error: ' + err.toString()))
     })
 
-    if (program.buildOnce) { convert(page) }
-    else { watch(page) }
+    if (program.buildOnce) {
+      if(fs.existsSync(path.join(inputDir, 'config.json'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.json'))
+          
+      } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yaml'))
+
+      } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yml'))
+
+      } else {
+          await plugin.loadPlugins(inputPath)
+      }
+      convert(page)
+
+    } else {
+      if(fs.existsSync(path.join(inputDir, 'config.json'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.json'), true)
+          
+      } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yaml'), true)
+
+      } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yml'), true)
+
+      } else {
+          await plugin.loadPlugins(inputPath, true)
+      }
+      watch(page)
+    }
 }
 
 /**

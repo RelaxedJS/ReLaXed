@@ -234,8 +234,6 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     var pluginMixins = plugin.get('mixin')
 
-    console.log(pluginMixins)
-
     /*
      *            Generate HTML
      */
