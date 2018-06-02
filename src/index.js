@@ -9,7 +9,7 @@ const path            = require('path')
 const fs              = require('fs')
 
 const converters      = require('./converters.js')
-const plugin          = require('./plugins').private
+const plugin          = require('./plugin')
 
 var input, output
 const version = require('../package.json').version
@@ -94,14 +94,14 @@ async function main () {
     const browser = await puppeteer.launch(puppeteerConfig);
     const page = await browser.newPage()
 
-    if(fs.existsSync(path.join(inputDir, '.relaxed.json'))) {
-        await plugin.loadPlugins(path.join(inputDir, '.relaxed.json'))
+    if(fs.existsSync(path.join(inputDir, 'config.json'))) {
+        await plugin.loadPlugins(path.join(inputDir, 'config.json'))
         
-    } else if(fs.existsSync(path.join(inputDir, '.relaxed.yaml'))) {
-        await plugin.loadPlugins(path.join(inputDir, '.relaxed.yaml'))
+    } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
+        await plugin.loadPlugins(path.join(inputDir, 'config.yaml'))
 
-    } else if(fs.existsSync(path.join(inputDir, '.relaxed.yml'))) {
-        await plugin.loadPlugins(path.join(inputDir, '.relaxed.yml'))
+    } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
+        await plugin.loadPlugins(path.join(inputDir, 'config.yml'))
 
     } else {
         await plugin.loadPlugins(inputPath)
@@ -160,13 +160,12 @@ function watch(page) {
     'htable.csv'
   ]
 
-  var pluginWatcher = plugin.getWatchers()
+  var pluginWatcher = plugin.get('watch')
 
   for (var plug of pluginWatcher) {
-    extlist = extlist.concat(plug.ext)
+    extlist = extlist.concat(plug.extensions)
   }
 
-  if (!(extlist.some(ext => filepath.endsWith(ext)))) { return }
   var globals = {
     busy: false
   }
@@ -178,14 +177,7 @@ function watch(page) {
     }
   }).on('change', (filepath) => {
 
-    if (!(
-      [
-        '.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-        '.chart.js', '.png', '.flowchart', '.flowchart.json',
-        '.vegalite.json', '.table.csv', 'htable.csv'
-      ].some(ext => filepath.endsWith(ext)))) {
-      return
-    }
+    if (!(extlist.some(ext => filepath.endsWith(ext)))) { return }
 
     var shortFileName = filepath.replace(inputDir, '')
 
@@ -225,8 +217,8 @@ function watch(page) {
 
     } else {
       for (var plug of pluginWatcher) {
-        if (plug.ext.some(ext => filepath.endsWith(ext))) {
-          taskPromise = plug.handler(filepath)
+        if (plug.extensions.some(ext => filepath.endsWith(ext))) {
+          taskPromise = plug.handler(path.resolve(filepath, '..'), path.basename(filepath))
           break
         }
       }

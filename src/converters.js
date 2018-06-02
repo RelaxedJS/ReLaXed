@@ -14,7 +14,7 @@ const SVGO            = require('svgo')
 
 const utils           = require('./utils')
 const generate        = require('./generators')
-const plugin          = require('./plugins').private
+const plugin          = require('./plugin')
 
 /*
  * ==============================================================
@@ -232,58 +232,44 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var html
     var t0 = performance.now()
 
-    var pluginMixins = plugin.getMixins()
+    var pluginMixins = plugin.get('mixin')
 
-    var mixString = ''
-
-    for (var plug of pluginMixins) {
-        mixString += plug.mixin + '\n'
-    }
+    console.log(pluginMixins)
 
     /*
      *            Generate HTML
      */
-    
-    var pluginPugs = plugin.getPugs()
-    for (var plug of pluginPugs) {
-        await plug.handler(masterPath)
-    }
     if (masterPath.endsWith('.pug')) {
-        try {
-            var masterPug = fs.readFileSync(masterPath, 'utf8')
+      try {
+          var masterPug = fs.readFileSync(masterPath, 'utf8')
 
-            html = pug.render(mixString + builtinMixins + '\n' + masterPug, {
-                filename: masterPath,
-                fs: fs,
-                cheerio: cheerio,
-                basedir: path.dirname(masterPath),
-                path: path,
-                performance: performance,
-                filters: {
-                    katex: (text, options) => katex.renderToString(text),
-                    scss: function (text, options) {
-                        var file = options.filename
-                        options = file.endsWith('scss') ? { file } : {data: text}
-                        return sass.renderSync(options).css.toString('utf8')
-                    }
-                }
-            })
+          html = pug.render(pluginMixins + builtinMixins + '\n' + masterPug, {
+              filename: masterPath,
+              fs: fs,
+              cheerio: cheerio,
+              basedir: path.dirname(masterPath),
+              path: path,
+              performance: performance,
+              filters: {
+                  katex: (text, options) => katex.renderToString(text),
+                  scss: function (text, options) {
+                      var file = options.filename
+                      options = file.endsWith('scss') ? { file } : {data: text}
+                      return sass.renderSync(options).css.toString('utf8')
+                  }
+              }
+          })
 
-        } catch (error) {
-            console.log(error.message)
-            console.error(colors.red('There was a Pug error (see above)'))
-            return
-        }
-      })
-    } catch (error) {
-      console.log(error.message)
-      console.error(colors.red('There was a Pug error (see above)'))
-      return
+      } catch (error) {
+          console.log(error.message)
+          console.error(colors.red('There was a Pug error (see above)'))
+          return
+      }
     }
 
     html = `<html><body>${html}</body></html>`
 
-    var pluginHTMLs = plugin.getHTMLs()
+    var pluginHTMLs = plugin.get('htmlFilter')
 
     for (var plug of pluginHTMLs) {
         html = await plug.handler(html)
@@ -328,14 +314,14 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
     if (size) { options.size = size }
 
-    var pluginFirsts = plugin.getPageFirsts()
+    var pluginFirsts = plugin.get('page1stPassFilter')
 
     for (var plug of pluginFirsts) {
         await plug.handler(page)
     }
     await generate.bibliography(page)
 
-    var pluginSeconds = plugin.getPageSeconds()
+    var pluginSeconds = plugin.get('page2ndPassFilter')
 
     for (var plug of pluginSeconds) {
         await plug.handler(page)
