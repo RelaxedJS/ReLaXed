@@ -40,13 +40,16 @@ function _requirePlugins(list) {
     // Not sure how I am going to pass settings for plugins
     // Need to figure out how to do dependencies with plugin package.json
     try {
-      var loaded = require(`relaxed-${plugin.name}`)
       for (var p of plugins) {
         if (p.name == plugin.name) {
           continue
         }
       }
+      var loaded = require(`relaxed-${plugin.name}`)
       loaded.name = plugin.name
+      if(loaded.activate) {
+        loaded.activate(plugin, plugins)
+      }
       plugins.push(loaded)
     } catch(error) {
       console.log(error)
