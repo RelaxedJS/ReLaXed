@@ -181,9 +181,9 @@ function watch(page) {
     extlist = extlist.concat(plug.extensions)
   }
 
-  var pluginWatcher = plugin.get('watcher')
+  var pluginWatchers = plugin.get('watches')
 
-  for (var plug of pluginWatcher) {
+  for (var plug of pluginWatchers) {
     for (var watch of plug) {
       extlist = extlist.concat(watch.extensions)
     }
@@ -239,10 +239,22 @@ function watch(page) {
       taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
 
     } else {
+      var watched = false
       for (var plug of pluginWatcher) {
         if (plug.extensions.some(ext => filepath.endsWith(ext))) {
           taskPromise = plug.handler(path.resolve(filepath, '..'), path.basename(filepath))
+          watched = true
           break
+        }
+      }
+      if (!watched) {
+        for (var plug of pluginWatcher) {
+          for (var p of plug) {
+            if (p.extensions.some(ext => filepath.endsWith(ext))) {
+              taskPromise = p.handler(path.resolve(filepath, '..'), path.basename(filepath))
+              break
+            }
+          }
         }
       }
     }
