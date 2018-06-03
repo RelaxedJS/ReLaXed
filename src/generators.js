@@ -1,3 +1,5 @@
+const Cite = require('citation-js')
+
 /**
  * Generate a bibliography from <span class='citation'>
  * @param {puppeteer.page} page
@@ -16,7 +18,7 @@ exports.bibliography = async function (page) {
   // No citations
   if (!values) return false
 
-  const Cite = require('citation-js')
+
   const data = new Cite()
 
   // Add all keys to citation-js

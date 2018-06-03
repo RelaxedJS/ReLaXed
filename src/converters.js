@@ -160,7 +160,7 @@ exports.svgToOptimizedSvg = async function (svgPath) {
     })
     return newData
   })
-  
+
   var svgo = new SVGO({
     plugins: [
       {
@@ -360,6 +360,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   if (size) {
     options.size = size
   }
+
 
   // TODO: page-first-pass hook
   await generate.bibliography(page)
