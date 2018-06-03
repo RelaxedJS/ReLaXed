@@ -1,21 +1,20 @@
-const fs = require('fs')
-const util = require('util')
-const pug = require('pug')
-const writeFile = util.promisify(fs.writeFile)
-const cheerio = require('cheerio')
-const path = require('path')
-const csv = require('csvtojson')
-const html2jade = require('html2jade')
-const colors = require('colors/safe')
-const {
-  performance
-} = require('perf_hooks')
-const katex = require('katex')
-const sass = require('node-sass')
-const SVGO = require('svgo')
+const fs              = require('fs')
+const util            = require('util')
+const pug             = require('pug')
+const writeFile       = util.promisify(fs.writeFile)
+const cheerio         = require('cheerio')
+const path            = require('path')
+const csv             = require('csvtojson')
+const html2jade       = require('html2jade')
+const colors          = require('colors/safe')
+const { performance } = require('perf_hooks')
+const katex           = require('katex')
+const sass            = require('node-sass')
+const SVGO            = require('svgo')
 
-const utils = require('./utils')
-const generate = require('./generators')
+const utils           = require('./utils')
+const generate        = require('./generators')
+const plugin          = require('./plugin')
 
 /*
  * ==============================================================
@@ -230,108 +229,115 @@ exports.chartjsToPNG = async function (chartjsPath, page) {
  */
 const builtinMixins = fs.readFileSync(path.join(__dirname, 'builtin_mixins.pug'))
 exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, outputPath) {
-  var html
-  var t0 = performance.now()
+    var html
+    var t0 = performance.now()
 
-  /*
-   *            Generate HTML
-   */
-  // TODO: Pre-pug hook
-  if (masterPath.endsWith('.pug')) {
-    try {
-      var masterPug = fs.readFileSync(masterPath, 'utf8')
+    var pluginMixins = plugin.get('mixins')
 
-      html = pug.render(builtinMixins + '\n' + masterPug, {
-        filename: masterPath,
-        fs: fs,
-        cheerio: cheerio,
-        basedir: path.dirname(masterPath),
-        path: path,
-        require: require,
-        performance: performance,
-        filters: {
-          katex: (text, options) => katex.renderToString(text),
-          scss: function (text, options) {
-            var file = options.filename
-            options = file.endsWith('scss') ? {
-              file
-            } : {
-              data: text
-            }
-            return sass.renderSync(options).css.toString('utf8')
-          }
-        }
-      })
-    } catch (error) {
-      console.log(error.message)
-      console.error(colors.red('There was a Pug error (see above)'))
-      return
+    /*
+     *            Generate HTML
+     */
+    if (masterPath.endsWith('.pug')) {
+      try {
+          var masterPug = fs.readFileSync(masterPath, 'utf8')
+
+          html = pug.render(pluginMixins + builtinMixins + '\n' + masterPug, {
+              filename: masterPath,
+              fs: fs,
+              cheerio: cheerio,
+              basedir: path.dirname(masterPath),
+              path: path,
+              performance: performance,
+              filters: {
+                  katex: (text, options) => katex.renderToString(text),
+                  scss: function (text, options) {
+                      var file = options.filename
+                      options = file.endsWith('scss') ? { file } : {data: text}
+                      return sass.renderSync(options).css.toString('utf8')
+                  }
+              }
+          })
+
+      } catch (error) {
+          console.log(error.message)
+          console.error(colors.red('There was a Pug error (see above)'))
+          return
+      }
     }
-  } else {
-    html = fs.readFileSync(masterPath, 'utf8')
-  }
-  if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
-    html = await utils.asyncMathjax(html)
-  }
 
-  html = `<html><body>${html}</body></html>`
+    html = `<html><body>${html}</body></html>`
 
-  // TODO: Post-pug hook
-  await writeFile(tempHTML, html)
+    var pluginHTMLs = plugin.get('htmlFilter')
 
-  var tHTML = performance.now()
-  console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
+    for (var plug of pluginHTMLs) {
+        html = await plug.handler(html)
+    }
 
-  await page.goto('file:' + tempHTML, {
-    waitUntil: ['load', 'domcontentloaded']
-  })
-  var tLoad = performance.now()
-  console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
-  // await utils.waitForNetworkIdle(page, 200)
-  var tNetwork = performance.now()
-  console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
+    var pluginHTMLs = plugin.get('htmlFilters')
 
-  var headerFooter = await getHeaderFooter(page)
+    for (var plug of pluginHTMLs) {
+      for (var filter of plug) {
+        html = await filter(html)
+      }
+    }
 
-  var headerTemplate = headerFooter.head
-  var footerTemplate = headerFooter.foot
+    // TODO: Post-pug hook
+    await writeFile(tempHTML, html)
 
-  /*
-   *            Create PDF options
-   */
-  var options = {
-    path: outputPath,
-    displayHeaderFooter: headerTemplate || footerTemplate,
-    headerTemplate,
-    footerTemplate,
-    printBackground: true
-  }
+    var tHTML = performance.now()
+    console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
 
-  var width = utils.getMatch(html, /-relaxed-page-width: (\S+);/m)
-  if (width) {
-    options.width = width
-  }
+    await page.goto('file:' + tempHTML, {waitUntil: ['load', 'domcontentloaded']})
+    var tLoad = performance.now()
+    console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
 
-  var height = utils.getMatch(html, /-relaxed-page-height: (\S+);/m)
-  if (height) {
-    options.height = height
-  }
+    await utils.waitForNetworkIdle(page, 200)
+    var tNetwork = performance.now()
+    console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
 
-  var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
-  if (size) {
-    options.size = size
-  }
+    var headerFooter = await getHeaderFooter(page)
 
-  // TODO: page-first-pass hook
-  await generate.bibliography(page)
+    var headerTemplate = headerFooter.head
+    var footerTemplate = headerFooter.foot
 
-  // TODO: page-second-pass hook
-  // TODO: add option to output full html from page
+    /*
+     *            Create PDF options
+     */
+    var options = {
+        path: outputPath,
+        displayHeaderFooter: headerTemplate || footerTemplate,
+        headerTemplate,
+        footerTemplate,
+        printBackground: true
+    }
 
-  await page.pdf(options)
+    var width = utils.getMatch(html, /-relaxed-page-width: (\S+);/m)
+    if (width) { options.width = width }
 
-  var tPDF = performance.now()
-  console.log(colors.magenta(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`))
+    var height = utils.getMatch(html, /-relaxed-page-height: (\S+);/m)
+    if (height) { options.height = height }
+
+    var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
+    if (size) { options.size = size }
+
+    var pluginFirsts = plugin.get('page1stPassFilter')
+
+    for (var plug of pluginFirsts) {
+        await plug.handler(page)
+    }
+    await generate.bibliography(page)
+
+    var pluginSeconds = plugin.get('page2ndPassFilter')
+
+    for (var plug of pluginSeconds) {
+        await plug.handler(page)
+    }
+    // TODO: add option to output full html from page
+    
+    await page.pdf(options)
+
+    var tPDF = performance.now()
+    console.log(colors.magenta(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`))
 }
 
 /*

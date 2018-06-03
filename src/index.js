@@ -1,16 +1,15 @@
 #!/usr/bin/env node
 
-const colors = require('colors/safe')
-const program = require('commander')
-const chokidar = require('chokidar')
-const puppeteer = require('puppeteer')
-const {
-  performance
-} = require('perf_hooks')
-const path = require('path')
-const fs = require('fs')
+const colors          = require('colors/safe')
+const program         = require('commander')
+const chokidar        = require('chokidar')
+const puppeteer       = require('puppeteer')
+const { performance } = require('perf_hooks')
+const path            = require('path')
+const fs              = require('fs')
 
-const converters = require('./converters.js')
+const converters      = require('./converters.js')
+const plugin          = require('./plugin')
 
 var input, output
 const version = require('../package.json').version
@@ -91,22 +90,47 @@ const puppeteerConfig = {
  * ==============================================================
  */
 async function main () {
-  console.log(colors.magenta.bold('Launching ReLaXed...'))
-  const browser = await puppeteer.launch(puppeteerConfig);
-  const page = await browser.newPage()
+    console.log(colors.magenta.bold('Launching ReLaXed...'))
+    const browser = await puppeteer.launch(puppeteerConfig);
+    const page = await browser.newPage()
+    
+    page.on('pageerror', function (err) {
+        console.log(colors.red('Page error: ' + err.toString()))
 
-  page.on('pageerror', function (err) {
-    console.log(colors.red('Page error: ' + err.toString()))
+    }).on('error', function (err) {
+        console.log(colors.red('Error: ' + err.toString()))
+    })
 
-  }).on('error', function (err) {
-    console.log(colors.red('Error: ' + err.toString()))
-  })
+    if (program.buildOnce) {
+      if(fs.existsSync(path.join(inputDir, 'config.json'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.json'))
+          
+      } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yaml'))
 
-  if (program.buildOnce) {
-    convert(page)
-  } else {
-    watch(page)
-  }
+      } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yml'))
+
+      } else {
+          await plugin.loadPlugins(inputPath)
+      }
+      convert(page)
+
+    } else {
+      if(fs.existsSync(path.join(inputDir, 'config.json'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.json'), true)
+          
+      } else if(fs.existsSync(path.join(inputDir, 'config.yaml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yaml'), true)
+
+      } else if(fs.existsSync(path.join(inputDir, 'config.yml'))) {
+          await plugin.loadPlugins(path.join(inputDir, 'config.yml'), true)
+
+      } else {
+          await plugin.loadPlugins(inputPath, true)
+      }
+      watch(page)
+    }
 }
 
 /**
@@ -134,6 +158,37 @@ async function convert(page) {
 function watch(page) {
   console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
 
+  var extlist = [
+    '.pug',
+    '.md',
+    '.html',
+    '.css',
+    '.scss',
+    '.svg',
+    '.mermaid',
+    '.chart.js',
+    '.png',
+    '.flowchart',
+    '.flowchart.json',
+    '.vegalite.json',
+    '.table.csv',
+    'htable.csv'
+  ]
+
+  var pluginWatcher = plugin.get('watch')
+
+  for (var plug of pluginWatcher) {
+    extlist = extlist.concat(plug.extensions)
+  }
+
+  var pluginWatchers = plugin.get('watches')
+
+  for (var plug of pluginWatchers) {
+    for (var watch of plug) {
+      extlist = extlist.concat(watch.extensions)
+    }
+  }
+
   var globals = {
     busy: false
   }
@@ -145,14 +200,7 @@ function watch(page) {
     }
   }).on('change', (filepath) => {
 
-    if (!(
-      [
-        '.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-        '.chart.js', '.png', '.flowchart', '.flowchart.json',
-        '.vegalite.json', '.table.csv', 'htable.csv'
-      ].some(ext => filepath.endsWith(ext)))) {
-      return
-    }
+    if (!(extlist.some(ext => filepath.endsWith(ext)))) { return }
 
     var shortFileName = filepath.replace(inputDir, '')
 
@@ -160,7 +208,6 @@ function watch(page) {
       console.log(colors.yellow(`( detected change in ${shortFileName}, but too busy right now )`))
       return
     }
-
     console.log(colors.magenta.bold(`\nProcessing detected change in ${shortFileName}...`))
     globals.busy = true
 
@@ -168,21 +215,48 @@ function watch(page) {
     var taskPromise = null
     if (filepath.endsWith('.chart.js')) {
       taskPromise = converters.chartjsToPNG(filepath, page)
+      
     } else if (filepath.endsWith('.mermaid')) {
       taskPromise = converters.mermaidToSvg(filepath, page)
+
     } else if (filepath.endsWith('.flowchart')) {
       taskPromise = converters.flowchartToSvg(filepath, page)
+
     } else if (filepath.endsWith('.flowchart.json')) {
       var flowchartFile = filepath.substr(0, filepath.length - 5)
       taskPromise = converters.flowchartToSvg(flowchartFile, page)
+
     } else if (filepath.endsWith('.vegalite.json')) {
       taskPromise = converters.vegaliteToSvg(filepath, page)
+
     } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
       converters.tableToPug(filepath)
+
     } else if (filepath.endsWith('.o.svg')) {
       taskPromise = converters.svgToOptimizedSvg(filepath)
+
     } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
       taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
+
+    } else {
+      var watched = false
+      for (var plug of pluginWatcher) {
+        if (plug.extensions.some(ext => filepath.endsWith(ext))) {
+          taskPromise = plug.handler(path.resolve(filepath, '..'), path.basename(filepath))
+          watched = true
+          break
+        }
+      }
+      if (!watched) {
+        for (var plug of pluginWatcher) {
+          for (var p of plug) {
+            if (p.extensions.some(ext => filepath.endsWith(ext))) {
+              taskPromise = p.handler(path.resolve(filepath, '..'), path.basename(filepath))
+              break
+            }
+          }
+        }
+      }
     }
 
     if (taskPromise) {
