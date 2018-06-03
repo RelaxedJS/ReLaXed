@@ -277,7 +277,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     for (var plug of pluginHTMLs) {
       for (var filter of plug) {
-        html = await filter.handler(html)
+        html = await filter(html)
       }
     }
 

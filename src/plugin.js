@@ -36,6 +36,11 @@ var plugins = []
   }
 */
 
+var pluginSettings = {}
+/*
+@struct 'plugin-name': settings
+*/
+
 function _requirePlugins(list) {
   for (var plugin of list) {
     // Not sure how I am going to pass settings for plugins
@@ -54,6 +59,9 @@ function _requirePlugins(list) {
       var loaded = require(`relaxed-${plugin.name}`)
       loaded.name = plugin.name
       loaded.settings = plugin.settings
+      if(loaded.public) {
+        pluginSettings[plugin.name] = loaded.public
+      }
       plugins.push(loaded)
     } catch(error) {
       console.log(error)
