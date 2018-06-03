@@ -1,5 +1,4 @@
 const Cite = require('citation-js')
-
 /**
  * Generate a bibliography from <span class='citation'>
  * @param {puppeteer.page} page

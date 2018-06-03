@@ -4,13 +4,12 @@ const colors = require('colors/safe')
 const program = require('commander')
 const chokidar = require('chokidar')
 const puppeteer = require('puppeteer')
-const {
-  performance
-} = require('perf_hooks')
+const { performance } = require('perf_hooks')
 const path = require('path')
 const fs = require('fs')
 
 const converters = require('./converters.js')
+const plugins = require('./plugins')
 
 var input, output
 const version = require('../package.json').version
@@ -43,6 +42,14 @@ if (!input) {
 const inputPath = path.resolve(input)
 const inputDir = path.resolve(inputPath, '..')
 const inputFilenameNoExt = path.basename(input, path.extname(input))
+var configPath
+for (filename in ['config.yaml', 'config.json']) {
+  let path = path.join(inputDir, filename
+  if fs.existsSync(filename) {
+    configPath = path
+  }
+}
+
 
 // Output file, path, and temp html path
 if (!output) {
@@ -90,17 +97,29 @@ const puppeteerConfig = {
  *                         Functions
  * ==============================================================
  */
+
+const relaxedGlobals = {
+  busy: false,
+  config: {}
+}
+
 async function main () {
   console.log(colors.magenta.bold('Launching ReLaXed...'))
+  if (configPath) {
+
+    console.log(colors.magenta.bold('Loading config plugins...'))
+    relaxedGlobals.configPlugins = await plugins.loadConfigPlugins(configPath)
+  }
+
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
+  relaxedGlobals.puppeteerPage = browser.newPage()
+
   page.on('pageerror', function (err) {
     console.log(colors.red('Page error: ' + err.toString()))
-
   }).on('error', function (err) {
     console.log(colors.red('Error: ' + err.toString()))
   })
-
   if (program.buildOnce) {
     await build(page, inputPath, {busy: false})
     process.exit(0)
@@ -109,39 +128,72 @@ async function main () {
   }
 }
 
-/**
- * Perform one time build on master document
- *
- * @param {puppeteer.Page} page
- * @param {string} filepath
- * @param {Object} globals
- */
-async function build (page, filepath, globals) {
-  // console.log(colors.magenta.bold('Building the document...'))
-  var shortFileName = filepath.replace(inputDir, '')
-  if (!(
-    [
-      '.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-      '.chart.js', '.png', '.flowchart', '.flowchart.json',
-      '.vegalite.json', '.table.csv', 'htable.csv'
-    ].some(ext => filepath.endsWith(ext)))) {
+async function build (filepath) {
+  // Ignore the call if ReLaXed is already busy processing other files.
+  if (relaxedGlobals.busy) {
+    console.log(colors.grey(`File ${shortFileName}: ignoring trigger, too busy.`))
+    return
+  }
+
+
+  var allPlugins = relaxedGlobals.configPlugins.concat(plugins.builtinDefaultPlugins)
+  // TODO: these should disappear, either plugined-away or part of the
+  // "default" plugin
+
+  var watchedExtensions = [
+    '.pug',
+    '.md',
+    '.html',
+    '.css',
+    '.scss',
+    '.svg',
+    '.mermaid',
+    '.chart.js',
+    '.png',
+    '.flowchart',
+    '.flowchart.json',
+    '.vegalite.json',
+    '.table.csv',
+    'htable.csv'
+  ]
+
+  var watchers = []
+  for (var plugin of allPlugins) {
+    if (plugin.watchers) {
+      watchers = watchers.concat(plugin.watchers)
+    }
+  }
+  // TODO: order watchers by watched extension inclusion.
+
+  for (var watcher of watchers) {
+     watchedExtensions= watchedExtensions.concat(watcher.extensions)
+  }
+
+
+  if (!(extlist.some(ext => filepath.endsWith(ext)))) {
     if (!(['.pdf', '.htm'].some(ext => filepath.endsWith(ext)))) {
       console.log(colors.grey(`No process defined for file ${shortFileName}.`))
     }
     return
   }
-  if (globals.busy) {
-    console.log(colors.grey(`File ${shortFileName}: ignoring trigger, too busy.`))
-    return
-  }
+
+  var shortFileName = filepath.replace(inputDir, '')
   console.log(colors.magenta.bold(`\nProcessing triggered for ${shortFileName}...`))
-
-
-  globals.busy = true
-
+  relaxedGlobals.busy = true
   var t0 = performance.now()
+
+  // TODO: plugin-away these different hooks.
   var taskPromise = null
-  if (filepath.endsWith('.chart.js')) {
+
+  for (watcher of watchers) {
+    if (watcher.extensions.some(ext => filepath.endsWith(ext))) {
+      taskPromise watcher.handler(filepath, page)
+    }
+  }
+  if (taskPromise) {
+    // do nothing (this is a temporary cosmetic hack until everything below)
+    // gets plugined away
+  } else if (filepath.endsWith('.chart.js')) {
     taskPromise = converters.chartjsToPNG(filepath, page)
   } else if (filepath.endsWith('.mermaid')) {
     taskPromise = converters.mermaidToSvg(filepath, page)
@@ -175,18 +227,15 @@ async function build (page, filepath, globals) {
  *
  * @param {puppeteer.Page} page
  */
-function watch(page) {
+function watch() {
   console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
-  var globals = {
-    busy: false
-  }
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
       pollInterval: 100
     }
   }).on('change', (filepath) => {
-    build(page, filepath, globals)
+    build(filepath)
   })
 }
 

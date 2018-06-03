@@ -8,22 +8,171 @@ const csv = require('csvtojson')
 const html2jade = require('html2jade')
 const colors = require('colors/safe')
 const filesize = require('filesize')
-const {
-  performance
-} = require('perf_hooks')
+const { performance } = require('perf_hooks')
 const katex = require('katex')
 const sass = require('node-sass')
 const SVGO = require('svgo')
-
 const utils = require('./utils')
-const generate = require('./generators')
+const plugins = require('plugins')
+// const generate = require('./generators')
+
+
+const builtinMixins = fs.readFileSync(path.join(__dirname, 'builtin_mixins.pug'))
+exports.masterDocumentToPDF = async function(masterPath, page, tempHTML, outputPath, plugins) {
+  var html
+  var t0 = performance.now()
+
+  var mixins = []
+  for (plugin of plugins)
+
+
+  /*
+   *            Generate HTML
+   */
+  if (masterPath.endsWith('.pug')) {
+    try {
+      var masterPug = fs.readFileSync(masterPath, 'utf8')
+
+      html = pug.render(pluginMixins + builtinMixins + '\n' + masterPug, {
+        filename: masterPath,
+        fs: fs,
+        cheerio: cheerio,
+        basedir: path.dirname(masterPath),
+        path: path,
+        performance: performance,
+        filters: {
+          katex: (text, options) => katex.renderToString(text),
+          scss: function(text, options) {
+            var file = options.filename
+            options = file.endsWith('scss') ? { file } : { data: text }
+            return sass.renderSync(options).css.toString('utf8')
+          }
+        }
+      })
+
+    } catch (error) {
+      console.log(error.message)
+      console.error(colors.red('There was a Pug error (see above)'))
+      return
+    }
+  }
+
+  html = `<html><body>${html}</body></html>`
+
+  var pluginHTMLs = plugin.get('htmlFilter')
+
+  for (var plug of pluginHTMLs) {
+    html = await plug.handler(html)
+  }
+
+  var pluginHTMLs = plugin.get('htmlFilters')
+
+  for (var plug of pluginHTMLs) {
+    for (var filter of plug) {
+      html = await filter(html)
+    }
+  }
+
+  // TODO: Post-pug hook
+  await writeFile(tempHTML, html)
+
+  var tHTML = performance.now()
+  console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
+
+  await page.goto('file:' + tempHTML, {
+    waitUntil: ['load', 'domcontentloaded']
+  })
+  var tLoad = performance.now()
+  console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
+
+  await utils.waitForNetworkIdle(page, 200)
+  var tNetwork = performance.now()
+  console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
+
+  var headerFooter = await getHeaderFooter(page)
+
+  var headerTemplate = headerFooter.head
+  var footerTemplate = headerFooter.foot
+
+  /*
+   *            Create PDF options
+   */
+  var options = {
+    path: outputPath,
+    displayHeaderFooter: headerTemplate || footerTemplate,
+    headerTemplate,
+    footerTemplate,
+    printBackground: true
+  }
+
+  var width = utils.getMatch(html, /-relaxed-page-width: (\S+);/m)
+  if (width) {
+    options.width = width
+  }
+
+  var height = utils.getMatch(html, /-relaxed-page-height: (\S+);/m)
+  if (height) {
+    options.height = height
+  }
+
+  var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
+  if (size) {
+    options.size = size
+  }
+
+  var pluginFirsts = plugin.get('page1stPassFilter')
+
+  for (var plug of pluginFirsts) {
+    await plug.handler(page)
+  }
+  // await generate.bibliography(page)
+
+  var pluginSeconds = plugin.get('page2ndPassFilter')
+
+  for (var plug of pluginSeconds) {
+    await plug.handler(page)
+  }
+  // TODO: add option to output full html from page
+
+  await page.pdf(options)
+
+  var tPDF = performance.now()
+  let duration = ((tPDF - tLoad) / 1000).toFixed(1)
+  let pdfSize = filesize(fs.statSync(outputPath).size)
+  console.log(colors.magenta(`... PDF written in ${duration}s (${pdfSize})`))
+}
+
+/*
+ *          Get Header and Footer template
+ */
+async function getHeaderFooter(page) {
+  var head = await page.$eval('#page-header', element => element.outerHTML)
+    .catch(error => '')
+  var foot = await page.$eval('#page-footer', element => element.outerHTML)
+    .catch(error => '')
+
+  if (head !== '' && foot === '') {
+    foot = '<span></span>'
+  }
+  if (foot !== '' && head === '') {
+    head = '<span></span>'
+  }
+
+  return new Promise((resolve, reject) => {
+    resolve({
+      head: head,
+      foot: foot
+    })
+  })
+}
+
 
 /*
  * ==============================================================
  *                      Mermaid
  * ==============================================================
  */
-exports.mermaidToSvg = async function (mermaidPath, page) {
+exports.mermaidToSvg = async function(mermaidPath, page) {
   var mermaidSpec = fs.readFileSync(mermaidPath, 'utf8')
   var html = utils.formatTemplate('mermaid', {
     mermaidSpec
@@ -32,7 +181,7 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
   await page.setContent(html)
   await page.waitForSelector('#graph svg')
 
-  var svg = await page.evaluate(function () {
+  var svg = await page.evaluate(function() {
     var el = document.querySelector('#graph svg')
     el.removeAttribute('height')
     el.classList.add('mermaid-svg')
@@ -49,7 +198,7 @@ exports.mermaidToSvg = async function (mermaidPath, page) {
  *                     Flowchart
  * ==============================================================
  */
-exports.flowchartToSvg = async function (flowchartPath, page) {
+exports.flowchartToSvg = async function(flowchartPath, page) {
   var flowchartSpec = fs.readFileSync(flowchartPath, 'utf8')
   var flowchartConf = '{}'
 
@@ -72,7 +221,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
   await page.setContent(html)
   await page.waitForSelector('#chart svg')
 
-  var svg = await page.evaluate(function () {
+  var svg = await page.evaluate(function() {
     var el = document.querySelector('#chart svg')
 
     el.removeAttribute('height')
@@ -92,7 +241,7 @@ exports.flowchartToSvg = async function (flowchartPath, page) {
  *                    Vegalite
  * ==============================================================
  */
-exports.vegaliteToSvg = async function (vegalitePath, page) {
+exports.vegaliteToSvg = async function(vegalitePath, page) {
   var vegaliteSpec = fs.readFileSync(vegalitePath, 'utf8')
   var html = utils.formatTemplate('vegalite', {
     vegaliteSpec
@@ -101,7 +250,7 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
   await page.setContent(html)
   await page.waitForSelector('#vis svg')
 
-  var svg = await page.evaluate(function () {
+  var svg = await page.evaluate(function() {
     var el = document.querySelector('#vis svg')
 
     el.removeAttribute('height')
@@ -128,9 +277,9 @@ const jimp = require('jimp')
  * by f(match), where f is asynchronous.
  *
  */
-var asyncReplace = async function (string, regexpr, f) {
+var asyncReplace = async function(string, regexpr, f) {
   var matchPromises = {}
-  string.replace(regexpr, function (match) {
+  string.replace(regexpr, function(match) {
     if (!matchPromises[match]) {
       matchPromises[match] = f(match)
     }
@@ -138,23 +287,23 @@ var asyncReplace = async function (string, regexpr, f) {
   for (var match in matchPromises) {
     matchPromises[match] = await matchPromises[match]
   }
-  return string.replace(regexpr, function (match) {
+  return string.replace(regexpr, function(match) {
     return matchPromises[match]
   })
 }
 
-exports.svgToOptimizedSvg = async function (svgPath) {
+exports.svgToOptimizedSvg = async function(svgPath) {
   var svgdata = fs.readFileSync(svgPath, 'utf8')
   var re = /(data:image\/png;base64,([^"]*)")/mg
   var pngIndicator = 'data:image/png;base64,'
-  svgdata = await asyncReplace(svgdata, re, async function (match) {
+  svgdata = await asyncReplace(svgdata, re, async function(match) {
     if (match.length < 5000) {
       return match
     }
     var buffer = Buffer.from(match.slice(pngIndicator.length), 'base64')
     var img = await jimp.read(buffer)
     var newData = await new Promise(resolve => {
-      img.quality(85).getBase64(jimp.MIME_JPEG, function (err, data) {
+      img.quality(85).getBase64(jimp.MIME_JPEG, function(err, data) {
         resolve(data + '"')
       })
     })
@@ -197,11 +346,13 @@ exports.svgToOptimizedSvg = async function (svgPath) {
  *                    CSV Table
  * ==============================================================
  */
-exports.tableToPug = function (tablePath) {
+exports.tableToPug = function(tablePath) {
   var extension, header
   var rows = []
 
-  csv({noheader: true})
+  csv({
+      noheader: true
+    })
     .fromFile(tablePath)
     .on('csv', (csvRow) => {
       rows.push(csvRow)
@@ -226,7 +377,7 @@ exports.tableToPug = function (tablePath) {
 
         html2jade.convertHtml(html, {
           bodyless: true
-        }, function (err, jade) {
+        }, function(err, jade) {
           if (err) {
             console.log(err)
           }
@@ -242,7 +393,7 @@ exports.tableToPug = function (tablePath) {
  *                         Chart.js
  * ==============================================================
  */
-exports.chartjsToPNG = async function (chartjsPath, page) {
+exports.chartjsToPNG = async function(chartjsPath, page) {
   var chartSpec = fs.readFileSync(chartjsPath, 'utf8')
   var html = utils.formatTemplate('chartjs', {
     chartSpec
@@ -251,7 +402,7 @@ exports.chartjsToPNG = async function (chartjsPath, page) {
 
   await writeFile(tempHTML, html)
   await page.setContent(html)
-  await page.waitForfunction(() => window.pngData)
+  await page.waitForFunction(() => window.pngData)
 
   const dataUrl = await page.evaluate(() => window.pngData)
   const {
@@ -267,135 +418,3 @@ exports.chartjsToPNG = async function (chartjsPath, page) {
  *                          Master
  * ==============================================================
  */
-const builtinMixins = fs.readFileSync(path.join(__dirname, 'builtin_mixins.pug'))
-exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, outputPath) {
-  var html
-  var t0 = performance.now()
-
-  /*
-   *            Generate HTML
-   */
-  // TODO: Pre-pug hook
-  if (masterPath.endsWith('.pug')) {
-    try {
-      var masterPug = fs.readFileSync(masterPath, 'utf8')
-
-      html = pug.render(builtinMixins + '\n' + masterPug, {
-        filename: masterPath,
-        fs: fs,
-        cheerio: cheerio,
-        basedir: path.dirname(masterPath),
-        path: path,
-        require: require,
-        performance: performance,
-        filters: {
-          katex: (text, options) => katex.renderToString(text),
-          scss: function (text, options) {
-            var file = options.filename
-            options = file.endsWith('scss') ? {
-              file
-            } : {
-              data: text
-            }
-            return sass.renderSync(options).css.toString('utf8')
-          }
-        }
-      })
-    } catch (error) {
-      console.log(error.message)
-      console.error(colors.red('There was a Pug error (see above)'))
-      return
-    }
-  } else {
-    html = fs.readFileSync(masterPath, 'utf8')
-  }
-  if (html.indexOf("-relaxed-mathjax-everywhere") >= 0) {
-    html = await utils.asyncMathjax(html)
-  }
-
-  html = `<html><body>${html}</body></html>`
-
-  // TODO: Post-pug hook
-  await writeFile(tempHTML, html)
-
-  var tHTML = performance.now()
-  console.log(colors.magenta(`... HTML generated in ${((tHTML - t0) / 1000).toFixed(1)}s`))
-
-  await page.goto('file:' + tempHTML, {
-    waitUntil: ['load', 'domcontentloaded']
-  })
-  var tLoad = performance.now()
-  console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
-  // await utils.waitForNetworkIdle(page, 200)
-  var tNetwork = performance.now()
-  console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
-
-  var headerFooter = await getHeaderFooter(page)
-
-  var headerTemplate = headerFooter.head
-  var footerTemplate = headerFooter.foot
-
-  /*
-   *            Create PDF options
-   */
-  var options = {
-    path: outputPath,
-    displayHeaderFooter: headerTemplate || footerTemplate,
-    headerTemplate,
-    footerTemplate,
-    printBackground: true
-  }
-
-  var width = utils.getMatch(html, /-relaxed-page-width: (\S+);/m)
-  if (width) {
-    options.width = width
-  }
-
-  var height = utils.getMatch(html, /-relaxed-page-height: (\S+);/m)
-  if (height) {
-    options.height = height
-  }
-
-  var size = utils.getMatch(html, /-relaxed-page-size: (\S+);/m)
-  if (size) {
-    options.size = size
-  }
-
-
-  // TODO: page-first-pass hook
-  await generate.bibliography(page)
-
-  // TODO: page-second-pass hook
-  // TODO: add option to output full html from page
-
-  await page.pdf(options)
-
-  var tPDF = performance.now()
-  let duration = ((tPDF - tLoad) / 1000).toFixed(1)
-  let pdfSize = filesize(fs.statSync(outputPath).size)
-  console.log(colors.magenta(`... PDF written in ${duration}s (${pdfSize})`))
-}
-
-/*
- *          Get Header and Footer template
- */
-async function getHeaderFooter(page) {
-  var head = await page.$eval('#page-header', element => element.outerHTML)
-    .catch(error => '')
-  var foot = await page.$eval('#page-footer', element => element.outerHTML)
-    .catch(error => '')
-
-  if (head !== '' && foot === '') {
-    foot = '<span></span>'
-  }
-  if (foot !== '' && head === '') {
-    head = '<span></span>'
-  }
-
-  return new Promise((resolve, reject) => {
-    resolve({
-      head: head,
-      foot: foot
-    })
-  })
-}
