@@ -232,7 +232,7 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
     var html
     var t0 = performance.now()
 
-    var pluginMixins = plugin.get('mixin')
+    var pluginMixins = plugin.get('mixins')
 
     /*
      *            Generate HTML
@@ -271,6 +271,14 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
 
     for (var plug of pluginHTMLs) {
         html = await plug.handler(html)
+    }
+
+    var pluginHTMLs = plugin.get('htmlFilters')
+
+    for (var plug of pluginHTMLs) {
+      for (var filter of plug) {
+        html = await filter.handler(html)
+      }
     }
 
     // TODO: Post-pug hook

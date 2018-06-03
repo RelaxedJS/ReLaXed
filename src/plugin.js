@@ -170,16 +170,19 @@ exports.loadPlugins = function(file, watch=false) {
 }
 
 exports.get = function(type) {
-  if (type == 'mixin') {
+  if (type == 'mixins') {
     var mixins = ''
 
     for (var plugin of plugins) {
       if (plugin[type]) {
-        if (/mixin/gm.test()) {
-          mixins += plugin[type] + '\n'
+        for(var mixin of plugin[type]) {
+          if (!fs.existsSync(mixin)) {
+            mixins += mixin + '\n'
 
-        } else {
-          mixins += fs.readFileSync(plugin[type]) + '\n'
+          } else {
+            mixins += fs.readFileSync(mixin) + '\n'
+          }
+
         }
       }
     }

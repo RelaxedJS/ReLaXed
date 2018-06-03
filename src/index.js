@@ -181,6 +181,14 @@ function watch(page) {
     extlist = extlist.concat(plug.extensions)
   }
 
+  var pluginWatcher = plugin.get('watcher')
+
+  for (var plug of pluginWatcher) {
+    for (var watch of plug) {
+      extlist = extlist.concat(watch.extensions)
+    }
+  }
+
   var globals = {
     busy: false
   }
