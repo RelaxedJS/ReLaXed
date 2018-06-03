@@ -7,6 +7,7 @@ const path = require('path')
 const csv = require('csvtojson')
 const html2jade = require('html2jade')
 const colors = require('colors/safe')
+const filesize = require('filesize')
 const {
   performance
 } = require('perf_hooks')
@@ -119,9 +120,47 @@ exports.vegaliteToSvg = async function (vegalitePath, page) {
  *                Optimize SVG
  * ==============================================================
  */
+
+const jimp = require('jimp')
+
+/*
+ * A simili-optimized function to replace all matches of a string
+ * by f(match), where f is asynchronous.
+ *
+ */
+var asyncReplace = async function (string, regexpr, f) {
+  var matchPromises = {}
+  string.replace(regexpr, function (match) {
+    if (!matchPromises[match]) {
+      matchPromises[match] = f(match)
+    }
+  })
+  for (var match in matchPromises) {
+    matchPromises[match] = await matchPromises[match]
+  }
+  return string.replace(regexpr, function (match) {
+    return matchPromises[match]
+  })
+}
+
 exports.svgToOptimizedSvg = async function (svgPath) {
   var svgdata = fs.readFileSync(svgPath, 'utf8')
-
+  var re = /(data:image\/png;base64,([^"]*)")/mg
+  var pngIndicator = 'data:image/png;base64,'
+  svgdata = await asyncReplace(svgdata, re, async function (match) {
+    if (match.length < 5000) {
+      return match
+    }
+    var buffer = Buffer.from(match.slice(pngIndicator.length), 'base64')
+    var img = await jimp.read(buffer)
+    var newData = await new Promise(resolve => {
+      img.quality(85).getBase64(jimp.MIME_JPEG, function (err, data) {
+        resolve(data + '"')
+      })
+    })
+    return newData
+  })
+  
   var svgo = new SVGO({
     plugins: [
       {
@@ -331,7 +370,9 @@ exports.masterDocumentToPDF = async function (masterPath, page, tempHTML, output
   await page.pdf(options)
 
   var tPDF = performance.now()
-  console.log(colors.magenta(`... PDF written in ${((tPDF - tLoad) / 1000).toFixed(1)}s`))
+  let duration = ((tPDF - tLoad) / 1000).toFixed(1)
+  let pdfSize = filesize(fs.statSync(outputPath).size)
+  console.log(colors.magenta(`... PDF written in ${duration}s (${pdfSize})`))
 }
 
 /*

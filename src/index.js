@@ -94,7 +94,6 @@ async function main () {
   console.log(colors.magenta.bold('Launching ReLaXed...'))
   const browser = await puppeteer.launch(puppeteerConfig);
   const page = await browser.newPage()
-
   page.on('pageerror', function (err) {
     console.log(colors.red('Page error: ' + err.toString()))
 
@@ -103,7 +102,8 @@ async function main () {
   })
 
   if (program.buildOnce) {
-    convert(page)
+    await build(page, inputPath, {busy: false})
+    process.exit(0)
   } else {
     watch(page)
   }
@@ -113,17 +113,61 @@ async function main () {
  * Perform one time build on master document
  *
  * @param {puppeteer.Page} page
+ * @param {string} filepath
+ * @param {Object} globals
  */
-async function convert(page) {
-  console.log(colors.magenta.bold('Building the document...'))
+async function build (page, filepath, globals) {
+  // console.log(colors.magenta.bold('Building the document...'))
+  var shortFileName = filepath.replace(inputDir, '')
+  if (!(
+    [
+      '.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
+      '.chart.js', '.png', '.flowchart', '.flowchart.json',
+      '.vegalite.json', '.table.csv', 'htable.csv'
+    ].some(ext => filepath.endsWith(ext)))) {
+    if (!(['.pdf', '.htm'].some(ext => filepath.endsWith(ext)))) {
+      console.log(colors.grey(`No process defined for file ${shortFileName}.`))
+    }
+    return
+  }
+  if (globals.busy) {
+    console.log(colors.grey(`File ${shortFileName}: ignoring trigger, too busy.`))
+    return
+  }
+  console.log(colors.magenta.bold(`\nProcessing triggered for ${shortFileName}...`))
 
-  await converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath).catch(e => {
-    console.log(e.toString())
-    process.exit(1)
-  })
 
-  console.log(colors.magenta.bold('... done !'))
-  process.exit(0)
+  globals.busy = true
+
+  var t0 = performance.now()
+  var taskPromise = null
+  if (filepath.endsWith('.chart.js')) {
+    taskPromise = converters.chartjsToPNG(filepath, page)
+  } else if (filepath.endsWith('.mermaid')) {
+    taskPromise = converters.mermaidToSvg(filepath, page)
+  } else if (filepath.endsWith('.flowchart')) {
+    taskPromise = converters.flowchartToSvg(filepath, page)
+  } else if (filepath.endsWith('.flowchart.json')) {
+    var flowchartFile = filepath.substr(0, filepath.length - 5)
+    taskPromise = converters.flowchartToSvg(flowchartFile, page)
+  } else if (filepath.endsWith('.vegalite.json')) {
+    taskPromise = converters.vegaliteToSvg(filepath, page)
+  } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
+    converters.tableToPug(filepath)
+  } else if (filepath.endsWith('.o.svg')) {
+    taskPromise = converters.svgToOptimizedSvg(filepath)
+  } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
+    taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
+  }
+
+  if (taskPromise) {
+    await taskPromise
+    var duration = ((performance.now() - t0) / 1000).toFixed(2)
+    console.log(colors.magenta.bold(`... Done in ${duration}s`))
+    globals.busy = false
+  } else {
+    globals.busy = false
+  }
 }
 
 /**
@@ -133,67 +177,16 @@ async function convert(page) {
  */
 function watch(page) {
   console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
-
   var globals = {
     busy: false
   }
-
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
       pollInterval: 100
     }
   }).on('change', (filepath) => {
-
-    if (!(
-      [
-        '.pug', '.md', '.html', '.css', '.scss', '.svg', '.mermaid',
-        '.chart.js', '.png', '.flowchart', '.flowchart.json',
-        '.vegalite.json', '.table.csv', 'htable.csv'
-      ].some(ext => filepath.endsWith(ext)))) {
-      return
-    }
-
-    var shortFileName = filepath.replace(inputDir, '')
-
-    if (globals.busy) {
-      console.log(colors.yellow(`( detected change in ${shortFileName}, but too busy right now )`))
-      return
-    }
-
-    console.log(colors.magenta.bold(`\nProcessing detected change in ${shortFileName}...`))
-    globals.busy = true
-
-    var t0 = performance.now()
-    var taskPromise = null
-    if (filepath.endsWith('.chart.js')) {
-      taskPromise = converters.chartjsToPNG(filepath, page)
-    } else if (filepath.endsWith('.mermaid')) {
-      taskPromise = converters.mermaidToSvg(filepath, page)
-    } else if (filepath.endsWith('.flowchart')) {
-      taskPromise = converters.flowchartToSvg(filepath, page)
-    } else if (filepath.endsWith('.flowchart.json')) {
-      var flowchartFile = filepath.substr(0, filepath.length - 5)
-      taskPromise = converters.flowchartToSvg(flowchartFile, page)
-    } else if (filepath.endsWith('.vegalite.json')) {
-      taskPromise = converters.vegaliteToSvg(filepath, page)
-    } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
-      converters.tableToPug(filepath)
-    } else if (filepath.endsWith('.o.svg')) {
-      taskPromise = converters.svgToOptimizedSvg(filepath)
-    } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-      taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
-    }
-
-    if (taskPromise) {
-      taskPromise.then(function () {
-        var duration = ((performance.now() - t0) / 1000).toFixed(2)
-        console.log(colors.magenta.bold(`... Done in ${duration}s`))
-        globals.busy = false
-      })
-    } else {
-      globals.busy = false
-    }
+    build(page, filepath, globals)
   })
 }
 
