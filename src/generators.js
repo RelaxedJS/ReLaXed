@@ -5,9 +5,18 @@
 exports.bibliography = async function (page) {
   // Get all the keys from citations
   var values = await page.$$eval('.citation', nodes => {
-    return nodes.map(node => {
-      return node.getAttribute('data-key')
-    })
+    return nodes.reduce((acc, node) => {
+      const keys = node.getAttribute('data-keys')
+
+      if (keys) {
+        keys.split(';;').forEach(k => acc[k] = true)
+      } else {
+        acc[node.getAttribute('data-key')] = true
+      }
+
+      return acc
+    }, {})
+
     // Error occurs because there are no citations
   }).catch(e => {
     return false
@@ -20,23 +29,34 @@ exports.bibliography = async function (page) {
   const data = new Cite()
 
   // Add all keys to citation-js
-  values.forEach(val => data.add(val))
+  Object.keys(values).forEach(val => {
+    data.add(val)
+  })
 
   // Format the citation spans
   await page.$$eval('.citation', (nodes, data) => {
     for (var element of nodes) {
-      let key = element.getAttribute('data-key')
-      let page = element.getAttribute('data-page')
-      for (var datum of data) {
-        if (datum.id === key) {
-          if (page !== '') {
-            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}, p. ${page})`
-          } else {
-            element.innerHTML = `(${datum.author[0].family}, ${datum.issued['date-parts'][0][0]})`
-          }
-          break
+      const keys = element.getAttribute('data-keys')
+      const key = element.getAttribute('data-key')
+      const page = element.getAttribute('data-page')
+
+      let citation
+
+      if (keys) {
+        citation = keys.split(';;').reduce((acc, k) => {
+          const datum = data.find(d => d.id === k)
+          if (datum) acc.push(`${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}`)
+          return acc
+        }, []).join('; ')
+      } else {
+        const datum = data.find(d => d.id === key)
+        if (datum) {
+          citation = `${datum.author[0].family}, ${datum.issued['date-parts'][0][0]}`
+          if (page !== '') citation += `, p. ${page}`
         }
       }
+
+      if (citation.length) element.innerHTML = `(${citation})`
     }
   }, data.data)
 
