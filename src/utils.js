@@ -1,4 +1,5 @@
-const mjpage = require('mathjax-node-page')
+// TODO: remove unused utils (as functionalities are moved to plugins)
+
 const pug = require('pug')
 const path = require('path')
 
@@ -42,18 +43,6 @@ exports.waitForNetworkIdle = function (page, timeout, maxInflightRequests = 0) {
       timeoutId = setTimeout(onTimeoutDone, timeout)
     }
   }
-}
-
-exports.asyncMathjax = function (html, options) {
-  return new Promise(resolve => {
-    mjpage.mjpage(html, {
-      format: ['TeX']
-    }, {
-      mml: true,
-      css: true,
-      html: true
-    }, response => resolve(response))
-  })
 }
 
 exports.getMatch = function (string, query) {

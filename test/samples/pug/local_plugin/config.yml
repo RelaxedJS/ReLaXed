@@ -1,0 +1,3 @@
+plugins:
+  - plugin: say-my-name
+    name: Heisenberg

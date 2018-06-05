@@ -4,12 +4,13 @@ const colors = require('colors/safe')
 const program = require('commander')
 const chokidar = require('chokidar')
 const puppeteer = require('puppeteer')
+const yaml = require('js-yaml')
 const { performance } = require('perf_hooks')
 const path = require('path')
 const fs = require('fs')
-
-const converters = require('./converters.js')
 const plugins = require('./plugins')
+const converters = require('./converters.js')
+const { masterToPDF } = require('./masterToPDF.js')
 
 var input, output
 const version = require('../package.json').version
@@ -42,11 +43,12 @@ if (!input) {
 const inputPath = path.resolve(input)
 const inputDir = path.resolve(inputPath, '..')
 const inputFilenameNoExt = path.basename(input, path.extname(input))
+
 var configPath
-for (filename in ['config.yaml', 'config.json']) {
-  let path = path.join(inputDir, filename
-  if fs.existsSync(filename) {
-    configPath = path
+for (var filename of ['config.yml', 'config.json']) {
+  let possiblePath = path.join(inputDir, filename)
+  if (fs.existsSync(possiblePath)) {
+    configPath = possiblePath
   }
 }
 
@@ -68,7 +70,6 @@ if (program.temp) {
       program.temp))
     process.exit(1)
   }
-
 } else {
   tempDir = inputDir
 }
@@ -94,107 +95,90 @@ const puppeteerConfig = {
 
 /*
  * ==============================================================
- *                         Functions
+ *                         MAIN
  * ==============================================================
  */
 
 const relaxedGlobals = {
   busy: false,
-  config: {}
+  config: {},
+  configPlugins: []
 }
+
+var updateConfig = async function () {
+  if (configPath) {
+    console.log(colors.magenta('... Reading config file'))
+    var data = fs.readFileSync(configPath, 'utf8')
+    if (configPath.endsWith('.json')) {
+      relaxedGlobals.config = JSON.parse(data)
+    } else {
+      relaxedGlobals.config = yaml.safeLoad(data)
+    }
+  }
+  await plugins.updateRegisteredPlugins(relaxedGlobals, inputDir)
+}
+
+
 
 async function main () {
   console.log(colors.magenta.bold('Launching ReLaXed...'))
-  if (configPath) {
 
-    console.log(colors.magenta.bold('Loading config plugins...'))
-    relaxedGlobals.configPlugins = await plugins.loadConfigPlugins(configPath)
+  // LOAD BUILT-IN "ALWAYS-ON" PLUGINS
+  for (var [i, plugin] of plugins.builtinDefaultPlugins.entries()) {
+    plugins.builtinDefaultPlugins[i] = await plugin.constructor()
   }
+  await updateConfig()
+  const browser = await puppeteer.launch(puppeteerConfig)
+  relaxedGlobals.puppeteerPage = await browser.newPage()
 
-  const browser = await puppeteer.launch(puppeteerConfig);
-  const page = await browser.newPage()
-  relaxedGlobals.puppeteerPage = browser.newPage()
-
-  page.on('pageerror', function (err) {
+  relaxedGlobals.puppeteerPage.on('pageerror', function (err) {
     console.log(colors.red('Page error: ' + err.toString()))
   }).on('error', function (err) {
     console.log(colors.red('Error: ' + err.toString()))
   })
   if (program.buildOnce) {
-    await build(page, inputPath, {busy: false})
+    await build(inputPath)
     process.exit(0)
   } else {
-    watch(page)
+    watch()
   }
 }
 
 async function build (filepath) {
+  var shortFileName = filepath.replace(inputDir, '')
+  var page = relaxedGlobals.puppeteerPage
   // Ignore the call if ReLaXed is already busy processing other files.
-  if (relaxedGlobals.busy) {
-    console.log(colors.grey(`File ${shortFileName}: ignoring trigger, too busy.`))
-    return
-  }
 
-
-  var allPlugins = relaxedGlobals.configPlugins.concat(plugins.builtinDefaultPlugins)
-  // TODO: these should disappear, either plugined-away or part of the
-  // "default" plugin
-
-  var watchedExtensions = [
-    '.pug',
-    '.md',
-    '.html',
-    '.css',
-    '.scss',
-    '.svg',
-    '.mermaid',
-    '.chart.js',
-    '.png',
-    '.flowchart',
-    '.flowchart.json',
-    '.vegalite.json',
-    '.table.csv',
-    'htable.csv'
-  ]
-
-  var watchers = []
-  for (var plugin of allPlugins) {
-    if (plugin.watchers) {
-      watchers = watchers.concat(plugin.watchers)
-    }
-  }
-  // TODO: order watchers by watched extension inclusion.
-
-  for (var watcher of watchers) {
-     watchedExtensions= watchedExtensions.concat(watcher.extensions)
-  }
-
-
-  if (!(extlist.some(ext => filepath.endsWith(ext)))) {
+  if (!(relaxedGlobals.watchedExtensions.some(ext => filepath.endsWith(ext)))) {
     if (!(['.pdf', '.htm'].some(ext => filepath.endsWith(ext)))) {
       console.log(colors.grey(`No process defined for file ${shortFileName}.`))
     }
     return
   }
 
-  var shortFileName = filepath.replace(inputDir, '')
+  if (relaxedGlobals.busy) {
+    console.log(colors.grey(`File ${shortFileName}: ignoring trigger, too busy.`))
+    return
+  }
+
   console.log(colors.magenta.bold(`\nProcessing triggered for ${shortFileName}...`))
   relaxedGlobals.busy = true
   var t0 = performance.now()
 
-  // TODO: plugin-away these different hooks.
+
   var taskPromise = null
 
-  for (watcher of watchers) {
-    if (watcher.extensions.some(ext => filepath.endsWith(ext))) {
-      taskPromise watcher.handler(filepath, page)
+  for (var watcher of relaxedGlobals.pluginHooks.watchers) {
+    if (watcher.instance.extensions.some(ext => filepath.endsWith(ext))) {
+      taskPromise = watcher.instance.handler(filepath, page)
+      break
     }
   }
+
+  // TODO: plugin-away all these different hooks.
   if (taskPromise) {
     // do nothing (this is a temporary cosmetic hack until everything below)
     // gets plugined away
-  } else if (filepath.endsWith('.chart.js')) {
-    taskPromise = converters.chartjsToPNG(filepath, page)
   } else if (filepath.endsWith('.mermaid')) {
     taskPromise = converters.mermaidToSvg(filepath, page)
   } else if (filepath.endsWith('.flowchart')) {
@@ -204,21 +188,18 @@ async function build (filepath) {
     taskPromise = converters.flowchartToSvg(flowchartFile, page)
   } else if (filepath.endsWith('.vegalite.json')) {
     taskPromise = converters.vegaliteToSvg(filepath, page)
-  } else if (['.table.csv', '.htable.csv'].some(ext => filepath.endsWith(ext))) {
-    converters.tableToPug(filepath)
-  } else if (filepath.endsWith('.o.svg')) {
-    taskPromise = converters.svgToOptimizedSvg(filepath)
-  } else if (['.pug', '.md', '.html', '.css', '.scss', '.svg', '.png'].some(ext => filepath.endsWith(ext))) {
-    taskPromise = converters.masterDocumentToPDF(inputPath, page, tempHTMLPath, outputPath)
+  } else {
+    // MAIN HOOK
+    taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath)
   }
 
   if (taskPromise) {
     await taskPromise
     var duration = ((performance.now() - t0) / 1000).toFixed(2)
     console.log(colors.magenta.bold(`... Done in ${duration}s`))
-    globals.busy = false
+    relaxedGlobals.busy = false
   } else {
-    globals.busy = false
+    relaxedGlobals.busy = false
   }
 }
 
@@ -227,7 +208,7 @@ async function build (filepath) {
  *
  * @param {puppeteer.Page} page
  */
-function watch() {
+function watch () {
   console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {

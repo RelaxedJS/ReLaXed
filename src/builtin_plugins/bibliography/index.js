@@ -1,11 +1,33 @@
 const Cite = require('citation-js')
-/**
- * Generate a bibliography from <span class='citation'>
- * @param {puppeteer.page} page
- */
-exports.bibliography = async function (page) {
+const fs = require('fs')
+const path = require('path')
+
+exports.constructor = async function (pluginDefinition) {
+  return {
+    pugHeaders: [
+      fs.readFileSync(path.join(__dirname,'./mixins.pug'), 'utf8')
+    ],
+    watchers: [
+      {
+        extensions: ['.bib'],
+        handler: extractBibliography
+      }
+    ],
+    pageModifiers: [
+      async (page) => { await generateBibliography(page, pluginDefinition) }
+    ]
+  }
+}
+
+var extractBibliography = async function (filepath, browserPage) {
+  console.log(`[bibliography] Noticed change in ${filepath}, doing nothing`)
+}
+
+
+var generateBibliography = async function (page, pluginDefinition) {
   // Get all the keys from citations
-  var values = await page.$$eval('.citation', nodes => {
+  console.log("there")
+  var citationKeys = await page.$$eval('.citation', nodes => {
     return nodes.map(node => {
       return node.getAttribute('data-key')
     })
@@ -15,13 +37,10 @@ exports.bibliography = async function (page) {
   })
 
   // No citations
-  if (!values) return false
-
-
-  const data = new Cite()
-
+  if (!citationKeys) return false
+  const citations = new Cite()
   // Add all keys to citation-js
-  values.forEach(val => data.add(val))
+  citationKeys.forEach(val => citations.add(val))
 
   // Format the citation spans
   await page.$$eval('.citation', (nodes, data) => {
@@ -39,25 +58,12 @@ exports.bibliography = async function (page) {
         }
       }
     }
-  }, data.data)
+  }, citations.data)
 
-  // Get the bibliography style
-  // TODO: remove with plugin system: define with [//- use-plugin: bibliography <style>] or [config.json]
-  var style = await page.$eval('#bibliography', element => {
-    return element.getAttribute('data-style')
-    // Error occurs because there is no bibliography
-  }).catch(e => {
-    return false
-  })
-
-  // No style because no bibliography
-  if (!style) return false
-
-  // Format html output for bibliography
-  const output = data.get({
+  const output = citations.get({
     format: 'string',
     type: 'html',
-    style: style,
+    style: pluginDefinition.style || 'citation-apa',
     lang: 'en-US'
   })
 
@@ -65,6 +71,4 @@ exports.bibliography = async function (page) {
   await page.$eval('#bibliography', (element, data) => {
     element.innerHTML = data
   }, output)
-
-  return true
 }

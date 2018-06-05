@@ -64,11 +64,12 @@ typings/
 # next.js build output
 .next
 
-test/samples/*/master.pdf
-test/samples/*/master.png
-test/samples/*/last_test_result.png
-test/samples/*/diff.png
-test/samples/*/master_temp.htm
+test/samples/*/*/master.pdf
+test/samples/*/*/master.png
+test/samples/*/*/last_test_*
+test/samples/*/*/diff.png
+test/samples/*/*/master_temp.htm
+*.htm
 
 package-lock.json
 

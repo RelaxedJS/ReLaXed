@@ -1,0 +1,3 @@
+plugins:
+  - plugin: bibliography
+    style: citation-apa
