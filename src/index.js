@@ -9,7 +9,6 @@ const { performance } = require('perf_hooks')
 const path = require('path')
 const fs = require('fs')
 const plugins = require('./plugins')
-const converters = require('./converters.js')
 const { masterToPDF } = require('./masterToPDF.js')
 
 var input, output
@@ -28,18 +27,14 @@ program
     output = out
   })
 
+// ARGUMENTS PARSING AND SETUP
+
 program.parse(process.argv)
 
-if (!input) {
-  console.error('ReLaXed error: no input file specified'.red)
-  process.exit(1)
+if (!input || fs.lstatSync(input).isDirectory()) {
+  input = autodetectMasterFile(input)
 }
 
-/*
- * ==============================================================
- *                      Variable Setting
- * ==============================================================
- */
 const inputPath = path.resolve(input)
 const inputDir = path.resolve(inputPath, '..')
 const inputFilenameNoExt = path.basename(input, path.extname(input))
@@ -136,16 +131,29 @@ async function main () {
   }).on('error', function (err) {
     console.log(colors.red('Error: ' + err.toString()))
   })
+
+  await build(inputPath)
+
   if (program.buildOnce) {
-    await build(inputPath)
     process.exit(0)
   } else {
     watch()
   }
 }
 
+/*
+ * ==============================================================
+ *                         BUILD
+ * ==============================================================
+ */
+
 async function build (filepath) {
   var shortFileName = filepath.replace(inputDir, '')
+
+  if (path.basename(filepath) === 'config.yml') {
+    await updateConfig()
+    return
+  }
   var page = relaxedGlobals.puppeteerPage
   // Ignore the call if ReLaXed is already busy processing other files.
 
@@ -161,7 +169,7 @@ async function build (filepath) {
     return
   }
 
-  console.log(colors.magenta.bold(`\nProcessing triggered for ${shortFileName}...`))
+  console.log(colors.magenta.bold(`\nProcessing ${shortFileName}...`))
   relaxedGlobals.busy = true
   var t0 = performance.now()
 
@@ -175,32 +183,13 @@ async function build (filepath) {
     }
   }
 
-  // TODO: plugin-away all these different hooks.
-  if (taskPromise) {
-    // do nothing (this is a temporary cosmetic hack until everything below)
-    // gets plugined away
-  } else if (filepath.endsWith('.mermaid')) {
-    taskPromise = converters.mermaidToSvg(filepath, page)
-  } else if (filepath.endsWith('.flowchart')) {
-    taskPromise = converters.flowchartToSvg(filepath, page)
-  } else if (filepath.endsWith('.flowchart.json')) {
-    var flowchartFile = filepath.substr(0, filepath.length - 5)
-    taskPromise = converters.flowchartToSvg(flowchartFile, page)
-  } else if (filepath.endsWith('.vegalite.json')) {
-    taskPromise = converters.vegaliteToSvg(filepath, page)
-  } else {
-    // MAIN HOOK
+  if (!taskPromise) {
     taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath)
   }
-
-  if (taskPromise) {
-    await taskPromise
-    var duration = ((performance.now() - t0) / 1000).toFixed(2)
-    console.log(colors.magenta.bold(`... Done in ${duration}s`))
-    relaxedGlobals.busy = false
-  } else {
-    relaxedGlobals.busy = false
-  }
+  await taskPromise
+  var duration = ((performance.now() - t0) / 1000).toFixed(2)
+  console.log(colors.magenta.bold(`... Done in ${duration}s`))
+  relaxedGlobals.busy = false
 }
 
 /**
@@ -208,16 +197,43 @@ async function build (filepath) {
  *
  * @param {puppeteer.Page} page
  */
+
+/*
+ * ==============================================================
+ *                         WATCH
+ * ==============================================================
+ */
+
 function watch () {
-  console.log(colors.magenta(`\nNow waiting for changes in ${colors.underline(input)} and its directory`))
+  console.log(colors.magenta(`\nNow idle and waiting for file changes.`))
   chokidar.watch(watchLocations, {
     awaitWriteFinish: {
       stabilityThreshold: 50,
       pollInterval: 100
     }
-  }).on('change', (filepath) => {
-    build(filepath)
-  })
+  }).on('change', build)
+}
+
+function autodetectMasterFile (input) {
+  var dir = input || '.'
+  var files = fs.readdirSync(dir).filter((name) => name.endsWith('.pug'))
+  var filename
+  if (files.length === 1) {
+    filename = files[0]
+  } else if (files.indexOf('master.pug') >= 0) {
+    filename = 'master.pug'
+  } else {
+    var error
+    if (input) {
+      error = `Could not find a master file in the provided directory ${input}`
+    } else {
+      error = `No input provided and could not find a master file in the current directory`
+    }
+    console.log(colors.red.bold(error))
+    program.help()
+    process.exit(1)
+  }
+  return path.join(dir, filename)
 }
 
 main()

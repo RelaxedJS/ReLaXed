@@ -29,6 +29,10 @@ describe('Sample tests', function () {
     {
       sampleName: 'mathjax',
       timeout: 10000
+    },
+    {
+      sampleName: 'header_and_footer',
+      timeout: 10000
     }
   ]
   tests.forEach(function (test) {

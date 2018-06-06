@@ -3,6 +3,9 @@ const chartjs = require('./chartjs')
 const svg = require('./svg')
 const table = require('./table')
 const mathjax = require('./mathjax')
+const vegalite = require('./vegalite')
+const mermaid = require('./mermaid')
+const flowchart = require('./flowchart')
 
 // THESE ARE PLUGINS THAT CAN BE LOADED VIA CONFIG.PY
 // WE WILL CERTAINLY TAKE OUT MOST OF THEM, AS SEPARATE PLUGINS
@@ -19,5 +22,8 @@ exports.plugins = {
 
 exports.defaultPlugins = [
   table,
-  chartjs
+  chartjs,
+  vegalite,
+  flowchart,
+  mermaid
 ]

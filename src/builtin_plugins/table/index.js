@@ -5,7 +5,7 @@ const path = require('path')
 const csv = require('csvtojson')
 const html2jade = require('html2jade')
 
-exports.constructor = async function (pluginDefinition) {
+exports.constructor = async function (params) {
   return {
     watchers: [
       {

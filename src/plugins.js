@@ -5,12 +5,11 @@ const fs = require('fs')
 
 exports.builtinDefaultPlugins = builtinPlugins.defaultPlugins
 
-var createConfigPlugin = async function (pluginDefinition, localPath) {
+var createConfigPlugin = async function (pluginName, parameters, localPath) {
   // for each plugin, look for a local definition, a built-in definition, or
   // a module-provided definition (module relaxed-pluginName)
   var origin
   var plugin
-  var pluginName = pluginDefinition.plugin
   try {
     var filename = `${pluginName}.plugin.js`
     var filepath = path.join(localPath, filename)
@@ -34,7 +33,7 @@ var createConfigPlugin = async function (pluginDefinition, localPath) {
   if (!plugin) {
     throw Error(`Plugin ${pluginName} not found !`)
   }
-  var configuratedPlugin = await plugin.constructor(pluginDefinition)
+  var configuratedPlugin = await plugin.constructor(parameters)
   configuratedPlugin.origin = origin
   return configuratedPlugin
 }
@@ -75,15 +74,20 @@ var listPluginHooks = function (pluginList) {
 var updateRegisteredPlugins = async function (relaxedGlobals, inputDir) {
   if (relaxedGlobals.config.plugins) {
     console.log(colors.magenta('... Loading config plugins'))
-    var plugin
+    var plugin, pluginName, params
     for (var pluginDefinition of relaxedGlobals.config.plugins) {
       try {
-        console.log(colors.magenta(`    - ${pluginDefinition.plugin} plugin`))
-        plugin = await createConfigPlugin(pluginDefinition, inputDir)
+        if (typeof (pluginDefinition) === 'string') {
+          [pluginName, params] = [pluginDefinition, {}]
+        } else {
+          [pluginName, params] = Object.entries(pluginDefinition)[0]
+        }
+        console.log(colors.magenta(`    - ${pluginName} plugin`))
+        plugin = await createConfigPlugin(pluginName, params, inputDir)
         relaxedGlobals.configPlugins.push(plugin)
       } catch (error) {
         console.log(error.message)
-        console.error(colors.bold.red(`Could not load plugin ${pluginDefinition.plugin}`))
+        console.error(colors.bold.red(`Could not load plugin ${pluginName}`))
       }
     }
   }
@@ -103,12 +107,12 @@ var updateRegisteredPlugins = async function (relaxedGlobals, inputDir) {
     '.jpg',
     '.mermaid',
     '.flowchart',
-    '.flowchart.json',
-    '.vegalite.json',
+    '.flowchart.json'
   ]
 
   for (var watcher of relaxedGlobals.pluginHooks.watchers) {
-    relaxedGlobals.watchedExtensions = relaxedGlobals.watchedExtensions.concat(watcher.instance.extensions)
+    var exts = watcher.instance.extensions
+    relaxedGlobals.watchedExtensions = relaxedGlobals.watchedExtensions.concat(exts)
   }
 }
 

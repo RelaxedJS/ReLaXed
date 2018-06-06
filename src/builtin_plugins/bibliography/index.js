@@ -2,7 +2,7 @@ const Cite = require('citation-js')
 const fs = require('fs')
 const path = require('path')
 
-exports.constructor = async function (pluginDefinition) {
+exports.constructor = async function (params) {
   return {
     pugHeaders: [
       fs.readFileSync(path.join(__dirname,'./mixins.pug'), 'utf8')
@@ -14,7 +14,7 @@ exports.constructor = async function (pluginDefinition) {
       }
     ],
     pageModifiers: [
-      async (page) => { await generateBibliography(page, pluginDefinition) }
+      async (page) => { await generateBibliography(page, params) }
     ]
   }
 }
@@ -24,9 +24,8 @@ var extractBibliography = async function (filepath, browserPage) {
 }
 
 
-var generateBibliography = async function (page, pluginDefinition) {
+var generateBibliography = async function (page, params) {
   // Get all the keys from citations
-  console.log("there")
   var citationKeys = await page.$$eval('.citation', nodes => {
     return nodes.map(node => {
       return node.getAttribute('data-key')
@@ -63,7 +62,7 @@ var generateBibliography = async function (page, pluginDefinition) {
   const output = citations.get({
     format: 'string',
     type: 'html',
-    style: pluginDefinition.style || 'citation-apa',
+    style: params.style || 'citation-apa',
     lang: 'en-US'
   })
 

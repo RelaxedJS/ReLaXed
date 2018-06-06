@@ -2,7 +2,7 @@ const pug = require('pug')
 const fs = require('fs')
 const path = require('path')
 
-exports.constructor = async function (pluginDefinition) {
+exports.constructor = async function (params) {
   return {
     watchers: [
       {

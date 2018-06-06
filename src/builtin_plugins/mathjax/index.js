@@ -2,7 +2,7 @@ const mjpage = require('mathjax-node-page')
 
 // TODO: would this work better if applied to the page instead of the HTML ?
 
-exports.constructor = async function (pluginDefinition) {
+exports.constructor = async function (params) {
   return {
     htmlFilters: [ asyncMathjax ]
   }
