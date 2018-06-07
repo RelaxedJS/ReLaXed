@@ -77,3 +77,6 @@ package-lock.json
 # VS code
 .vscode
 .eslintrc.*
+
+# local backups
+*.local.bak
