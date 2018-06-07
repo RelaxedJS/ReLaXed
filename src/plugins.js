@@ -26,7 +26,7 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
     origin = filepath
   } catch (error) {
     try {
-      var libname = `relaxed-${pluginName}`
+      var libname = `relaxed-${pluginName}` 
       plugin = require(libname)
       origin = libname
     } catch (error) {
