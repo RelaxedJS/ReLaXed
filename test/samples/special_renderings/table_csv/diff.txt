@@ -1,0 +1,17 @@
+tbody
+  tr
+    td ,[[H1
+    td H2
+    td H3
+  tr
+    td ]],A1
+    td A2
+    td A3
+  tr
+    td B1
+    td B2
+    td B3
+  tr
+    td C1
+    td C2
+    td C3

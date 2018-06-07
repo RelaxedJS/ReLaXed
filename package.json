@@ -1,6 +1,6 @@
 {
   "name": "relaxedjs",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/index.js",
   "bin": {
@@ -20,7 +20,11 @@
     "colors": "^1.2.3",
     "commander": "^2.15.1",
     "csvtojson": "^1.1.9",
+    "deptree": "^1.0.0",
+    "filesize": "^3.6.1",
     "html2jade": "^0.8.6",
+    "jimp": "^0.2.28",
+    "js-yaml": "^3.12.0",
     "jstransformer-highlight": "^1.0.1",
     "jstransformer-markdown-it": "^2.1.0",
     "katex": "^0.9.0",
@@ -32,6 +36,7 @@
     "svgo": "^1.0.5"
   },
   "devDependencies": {
+    "diff": "^3.5.0",
     "mocha": "^5.2.0",
     "pdf-image": "^2.0.0",
     "pixel-diff": "^1.0.1"
