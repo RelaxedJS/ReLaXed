@@ -3,6 +3,10 @@ const colors = require('colors/safe')
 const builtinPlugins = require('./builtin_plugins')
 const fs = require('fs')
 
+// TODO: Add dependency system
+// TODO: Add priority queueing (after: ['plugin'])
+// TODO: Add parser for '//- use-plugin: example' headers
+
 exports.builtinDefaultPlugins = builtinPlugins.defaultPlugins
 
 var createConfigPlugin = async function (pluginName, parameters, localPath) {

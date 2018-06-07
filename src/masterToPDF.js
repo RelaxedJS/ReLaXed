@@ -6,7 +6,31 @@ const filesize = require('filesize')
 const katex = require('katex')
 const sass = require('node-sass')
 const path = require('path')
+const css = require('css')
 const { performance } = require('perf_hooks')
+
+function convertSizeFormat(size) {
+  const ppi = 96
+  const ppc = 2.54 * ppi
+  if(typeof size === 'number') {
+    return size
+  }
+  var num = Number(size.match(/[0-9.]+/g)[0])
+  switch(size.match(/[a-zA-Z]+/g)[0]) {
+    case 'in':
+      return num * ppi
+      break
+    case 'cm':
+      return num * ppc
+      break
+    case 'mm':
+      return num * ppc * 10
+      break
+    default:
+      return num
+      break
+  }
+}
 
 exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, outputPath) {
   var t0 = performance.now()
@@ -57,6 +81,67 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   for (var htmlFilter of relaxedGlobals.pluginHooks.htmlFilters) {
     html = await htmlFilter.instance(html)
   }
+
+  var margins
+
+  var match = css.parse(html.match(/\@page\s+\{[\w\W]*\}/g)[0]).stylesheet.rules[0].declarations
+
+  for (var m of match) {
+    if (m.property == 'margin') {
+      margins = {}
+      var top = m.value
+      var left = m.value
+      var bottom = m.value
+      var right = m.value
+      if (/\s/g.test(m.value)) {
+        var properties = m.value.split(' ')
+        if (properties.length == 2) {
+          top = properties[0]
+          bottom = properties[0]
+          left = properties[1]
+          right = properties[1]
+        } else if (properties.length == 3) {
+          top = properties[0]
+          left = properties[1]
+          right = properties[1]
+          bottom = properties[2]
+        } else {
+          top = properties[0]
+          right = properties[1]
+          bottom = properties[2]
+          left = properties[3]
+        }
+      }
+      margins = {
+        top: top,
+        left: left,
+        bottom: bottom,
+        right: right
+      }
+      break
+    }
+    if (m.property == 'margin-top') {
+      if (!margins) { margins = {} }
+      margins.top = m.value
+    }
+    if (m.property == 'margin-left') {
+      if (!margins) { margins = {} }
+      margins.left = m.value
+    }
+    if (m.property == 'margin-right') {
+      if (!margins) { margins = {} }
+      margins.right = m.value
+    }
+    if (m.property == 'margin-bottom') {
+      if (!margins) { margins = {} }
+      margins.bottom = m.value
+    }
+  }
+
+  margins.top = convertSizeFormat(margins.top)
+  margins.bottom = convertSizeFormat(margins.bottom)
+  margins.left = convertSizeFormat(margins.left)
+  margins.right = convertSizeFormat(margins.right)
 
   fs.writeFileSync(tempHTMLPath, html)
 
@@ -120,12 +205,17 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     options.size = size
   }
 
+  var pluginParams = {}
+  pluginParams.margins = margins ? margins : null
+  pluginParams.width = width ? width : convertSizeFormat('8.5in')
+  pluginParams.height = height ? height : convertSizeFormat('11in')
+
   for (var pageModifier of relaxedGlobals.pluginHooks.pageModifiers) {
-    await pageModifier.instance(page)
+    await pageModifier.instance(page, pluginParams)
   }
 
   for (pageModifier of relaxedGlobals.pluginHooks.page2ndModifiers) {
-    await pageModifier.instance(page)
+    await pageModifier.instance(page, pluginParams)
   }
 
   // TODO: add option to output full html from page
