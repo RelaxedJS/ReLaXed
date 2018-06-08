@@ -210,12 +210,40 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   pluginParams.width = width ? width : convertSizeFormat('8.5in')
   pluginParams.height = height ? height : convertSizeFormat('11in')
 
-  for (var pageModifier of relaxedGlobals.pluginHooks.pageModifiers) {
-    await pageModifier.instance(page, pluginParams)
+  var getPluginHookByName = function(name, list) {
+    for (var plugin of list) {
+      if (plugin.name == name) {
+        return plugin
+      }
+    }
+    return false
   }
 
+  var ran = []
+
+  var runInstance = async function(hook, list) {
+    if (ran.indexOf(hook.name) == -1) {
+      ran.push(hook.name)
+      if (hook.after) {
+        for (var afters of hook.after) {
+          var pluginAfter = getPluginHookByName(hook.name, list)
+          if (pluginAfter) {
+            runInstance(pluginAfter, list)
+          }
+        }
+      }
+      await hook.instance(page, pluginParams)
+    }
+  }
+
+
+  for (var pageModifier of relaxedGlobals.pluginHooks.pageModifiers) {
+    await runInstance(pageModifier, relaxedGlobals.pluginHooks.pageModifiers)
+  }
+  ran = []
+
   for (pageModifier of relaxedGlobals.pluginHooks.page2ndModifiers) {
-    await pageModifier.instance(page, pluginParams)
+    await runInstance(pageModifier, relaxedGlobals.pluginHooks.page2ndModifiers)
   }
 
   // TODO: add option to output full html from page

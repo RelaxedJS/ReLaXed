@@ -9,7 +9,7 @@ const fs = require('fs')
 
 exports.builtinDefaultPlugins = builtinPlugins.defaultPlugins
 
-var createConfigPlugin = async function (pluginName, parameters, localPath) {
+async function createConfigPlugin(pluginName, parameters, localPath, relaxedGlobals) {
   // for each plugin, look for a local definition, a built-in definition, or
   // a module-provided definition (module relaxed-pluginName)
   var origin
@@ -37,12 +37,18 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
   if (!plugin) {
     throw Error(`Plugin ${pluginName} not found !`)
   }
+  if (plugin.depends_on) {
+    for (var depend_plugin of plugin.depends_on) {
+      await attemptLoadPlugin(depend_plugin, localPath, relaxedGlobals)
+    }
+  }
   var configuratedPlugin = await plugin.constructor(parameters)
   configuratedPlugin.origin = origin
+  configuratedPlugin.name = pluginName
   return configuratedPlugin
 }
 
-var listPluginHooks = function (pluginList) {
+function listPluginHooks(pluginList) {
   var pluginHooks = {}
   var hooks = [
     'pugHeaders',
@@ -57,10 +63,32 @@ var listPluginHooks = function (pluginList) {
       try {
         if (plugin[hook]) {
           for (var pluginHook of plugin[hook]) {
-            hookInstances.push({
-              instance: pluginHook,
-              origin: plugin.origin
-            })
+            if (typeof pluginHook === 'function'
+                || pluginHook.extensions
+                || /mixin/g.test(pluginHook)) {
+              hookInstances.push({
+                instance: pluginHook,
+                origin: plugin.origin,
+                name: plugin.name
+              })
+            } else {
+              if (typeof pluginHook.handler === 'function') {
+                if(pluginHook.after) {
+                  hookInstances.push({
+                    instance: pluginHook.handler,
+                    origin: plugin.origin,
+                    name: plugin.name,
+                    after: pluginHook.after
+                  })
+                } else {
+                  hookInstances.push({
+                    instance: pluginHook.handler,
+                    origin: plugin.origin,
+                    name: plugin.name
+                  })
+                }
+              }
+            }
           }
         }
       } catch (error) {
@@ -75,24 +103,29 @@ var listPluginHooks = function (pluginList) {
   return pluginHooks
 }
 
-var updateRegisteredPlugins = async function (relaxedGlobals, inputDir) {
+async function attemptLoadPlugin(pluginDefinition, inputDir, relaxedGlobals) {
+  var plugin, pluginName, params
+  try {
+    if (typeof (pluginDefinition) === 'string') {
+      [pluginName, params] = [pluginDefinition, {}]
+    } else {
+      [pluginName, params] = Object.entries(pluginDefinition)[0]
+    }
+    console.log(colors.magenta(`    - ${pluginName} plugin`))
+    plugin = await createConfigPlugin(pluginName, params, inputDir, relaxedGlobals)
+    relaxedGlobals.configPlugins.push(plugin)
+  } catch (error) {
+    console.log(error.message)
+    console.error(colors.bold.red(`Could not load plugin ${pluginName}`))
+  }
+}
+
+async function updateRegisteredPlugins(relaxedGlobals, inputDir) {
   if (relaxedGlobals.config.plugins) {
     console.log(colors.magenta('... Loading config plugins'))
     var plugin, pluginName, params
     for (var pluginDefinition of relaxedGlobals.config.plugins) {
-      try {
-        if (typeof (pluginDefinition) === 'string') {
-          [pluginName, params] = [pluginDefinition, {}]
-        } else {
-          [pluginName, params] = Object.entries(pluginDefinition)[0]
-        }
-        console.log(colors.magenta(`    - ${pluginName} plugin`))
-        plugin = await createConfigPlugin(pluginName, params, inputDir)
-        relaxedGlobals.configPlugins.push(plugin)
-      } catch (error) {
-        console.log(error.message)
-        console.error(colors.bold.red(`Could not load plugin ${pluginName}`))
-      }
+      await attemptLoadPlugin(pluginDefinition, inputDir, relaxedGlobals)
     }
   }
   var allPlugins = relaxedGlobals.configPlugins.concat(builtinPlugins.defaultPlugins)

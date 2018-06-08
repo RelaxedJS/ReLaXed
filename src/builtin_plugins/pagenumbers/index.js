@@ -33,12 +33,12 @@ async function fillNumbers(page, params) {
     }
   }, width - margins.left - margins.right, height - margins.top - margins.bottom)
 
-  var info = await page.$eval('body', body => {
-    var elements = []
-    for (var element of body.getElementsByTagName("*")) {
-      elements.push(element.outerHTML)
-    }
-    return elements
-  })
-  console.log(info)
+  // var info = await page.$eval('body', body => {
+  //   var elements = []
+  //   for (var element of body.getElementsByTagName("*")) {
+  //     elements.push(element.outerHTML)
+  //   }
+  //   return elements
+  // })
+  // console.log(info)
 }

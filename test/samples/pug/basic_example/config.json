@@ -1,5 +1,9 @@
 {
   "plugins": [
-    "pageNumber"
+    {
+      "tableofcontents": {
+        "depth": 3
+      }
+    }
   ]
 }
