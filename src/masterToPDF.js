@@ -82,59 +82,66 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     html = await htmlFilter.instance(html)
   }
 
-  var margins
+  var margins = {
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0
+  }
 
-  var match = css.parse(html.match(/\@page\s+\{[\w\W]*\}/g)[0]).stylesheet.rules[0].declarations
+  if (/@page/.test(html)) {
+    var match = css.parse(html.match(/\@page\s+\{[\w\W]*\}/g)[0]).stylesheet.rules[0].declarations
 
-  for (var m of match) {
-    if (m.property == 'margin') {
-      margins = {}
-      var top = m.value
-      var left = m.value
-      var bottom = m.value
-      var right = m.value
-      if (/\s/g.test(m.value)) {
-        var properties = m.value.split(' ')
-        if (properties.length == 2) {
-          top = properties[0]
-          bottom = properties[0]
-          left = properties[1]
-          right = properties[1]
-        } else if (properties.length == 3) {
-          top = properties[0]
-          left = properties[1]
-          right = properties[1]
-          bottom = properties[2]
-        } else {
-          top = properties[0]
-          right = properties[1]
-          bottom = properties[2]
-          left = properties[3]
+    for (var m of match) {
+      if (m.property == 'margin') {
+        margins = {}
+        var top = m.value
+        var left = m.value
+        var bottom = m.value
+        var right = m.value
+        if (/\s/g.test(m.value)) {
+          var properties = m.value.split(' ')
+          if (properties.length == 2) {
+            top = properties[0]
+            bottom = properties[0]
+            left = properties[1]
+            right = properties[1]
+          } else if (properties.length == 3) {
+            top = properties[0]
+            left = properties[1]
+            right = properties[1]
+            bottom = properties[2]
+          } else {
+            top = properties[0]
+            right = properties[1]
+            bottom = properties[2]
+            left = properties[3]
+          }
         }
+        margins = {
+          top: top,
+          left: left,
+          bottom: bottom,
+          right: right
+        }
+        break
       }
-      margins = {
-        top: top,
-        left: left,
-        bottom: bottom,
-        right: right
+      if (m.property == 'margin-top') {
+        if (!margins) { margins = {} }
+        margins.top = m.value
       }
-      break
-    }
-    if (m.property == 'margin-top') {
-      if (!margins) { margins = {} }
-      margins.top = m.value
-    }
-    if (m.property == 'margin-left') {
-      if (!margins) { margins = {} }
-      margins.left = m.value
-    }
-    if (m.property == 'margin-right') {
-      if (!margins) { margins = {} }
-      margins.right = m.value
-    }
-    if (m.property == 'margin-bottom') {
-      if (!margins) { margins = {} }
-      margins.bottom = m.value
+      if (m.property == 'margin-left') {
+        if (!margins) { margins = {} }
+        margins.left = m.value
+      }
+      if (m.property == 'margin-right') {
+        if (!margins) { margins = {} }
+        margins.right = m.value
+      }
+      if (m.property == 'margin-bottom') {
+        if (!margins) { margins = {} }
+        margins.bottom = m.value
+      }
     }
   }
 
