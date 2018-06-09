@@ -80,4 +80,5 @@ package-lock.json
 .vscode
 .eslintrc.*
 
+# Local backups
 *.local.bak

@@ -11,6 +11,8 @@ const fs = require('fs')
 const plugins = require('./plugins')
 const { masterToPDF } = require('./masterToPDF.js')
 
+// TODO: Plugin hooks, should be passed document information, width, height, margins, etc.
+
 var input, output
 const version = require('../package.json').version
 

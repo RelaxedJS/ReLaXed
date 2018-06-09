@@ -1,0 +1,9 @@
+{
+  "plugins": [
+    {
+      "tableofcontents": {
+        "depth": 3
+      }
+    }
+  ]
+}
