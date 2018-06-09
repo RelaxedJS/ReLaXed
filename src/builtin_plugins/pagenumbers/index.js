@@ -18,6 +18,8 @@ async function fillNumbers(page, params) {
   var margins = params.margins
 
   await page.$eval('body', (body, width, height) => {
+    body.width = width
+    body.style.width = width + 'px'
     var p = 1
     var newPageError = 0
     for (var element of body.getElementsByTagName("*")) {
