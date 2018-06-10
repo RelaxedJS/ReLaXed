@@ -14,7 +14,7 @@ const katex = require('./katex')
 exports.plugins = {
   bibliography,
   mathjax,
-  svg,
+  // svg,
   katex
 }
 

@@ -9,25 +9,41 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
   // for each plugin, look for a local definition, a built-in definition, or
   // a module-provided definition (module relaxed-pluginName)
   var origin
-  var plugin
-  try {
-    var filename = `${pluginName}.plugin.js`
-    var filepath = path.join(localPath, filename)
-    fs.accessSync(filepath)
-    try {
-      plugin = require(filepath)
-    } catch (error) {
-      console.error(error)
-    }
-    origin = filepath
-  } catch (error) {
-    try {
-      var libname = `relaxed-${pluginName}`
-      plugin = require(libname)
-      origin = libname
-    } catch (error) {
-      plugin = builtinPlugins.plugins[pluginName]
-      origin = `ReLaXed ${pluginName} built-in plugin`
+  var plugin = builtinPlugins.plugins[pluginName]
+
+  if (plugin) {
+    origin = `ReLaXed ${pluginName} built-in plugin`
+  } else {
+    var possiblePaths = [
+      {
+        location: path.join(localPath, `${pluginName}.plugin.js`),
+        origin: `local file ${pluginName}.plugin.js`
+      },
+      {
+        location: path.join(localPath, pluginName),
+        origin: `local plugin ${pluginName}`
+      },
+      {
+        location: path.join(localPath, `relaxed-${pluginName}`),
+        origin: `relaxed-${pluginName}`
+      },
+      {
+        // linux
+        location: `/usr/local/lib/node_modules/relaxed-${pluginName}`,
+        origin: `relaxed-${pluginName}`
+      }
+    ]
+    for (var possiblePath of possiblePaths) {
+      try {
+        plugin = require(possiblePath.location)
+        origin = possiblePath.origin
+        break
+      } catch (error) {
+        var expected = `Cannot find module '${possiblePath.location}'`
+        if (error.message.indexOf(expected) === -1) {
+          console.error(error)
+        }
+      }
     }
   }
   if (!plugin) {
