@@ -38,7 +38,7 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
       },
       {
         // travis
-        location: `/home/travis/build/RelaxedJS/relaxed-svg`,
+        location: `/home/travis/build/RelaxedJS/relaxed-${pluginName}`,
         origin: `relaxed-${pluginName}`
       }
     ]
