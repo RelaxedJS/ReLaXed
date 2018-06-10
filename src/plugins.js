@@ -25,11 +25,20 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
       },
       {
         location: path.join(localPath, `relaxed-${pluginName}`),
+        origin: `local relaxed-${pluginName}`
+      },
+      {
+        location: `relaxed-${pluginName}`,
         origin: `relaxed-${pluginName}`
       },
       {
         // linux
         location: `/usr/local/lib/node_modules/relaxed-${pluginName}`,
+        origin: `relaxed-${pluginName}`
+      },
+      {
+        // travis
+        location: `/home/travis/build/RelaxedJS/relaxed-svg`,
         origin: `relaxed-${pluginName}`
       }
     ]
