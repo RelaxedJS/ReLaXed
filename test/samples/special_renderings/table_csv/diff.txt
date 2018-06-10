@@ -1,10 +1,6 @@
 tbody
-  tr
-    td ,[[H1
-    td H2
-    td H3
-  tr
-    td ]],A1
+,<<  tr
+    td A1
     td A2
     td A3
   tr
@@ -15,3 +11,4 @@ tbody
     td C1
     td C2
     td C3
+>>

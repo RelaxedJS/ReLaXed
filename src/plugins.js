@@ -41,18 +41,25 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
 var listPluginHooks = function (pluginList) {
   var pluginHooks = {}
   var hooks = [
-    'pugHeaders',
     'watchers',
-    'htmlFilters',
+    'pugHeaders',
+    'pugFilters',
+    'headElements',
+    'htmlModifiers',
     'pageModifiers',
-    'page2ndModifiers'
+    'page2ndModifiers',
+    'postPDF'
   ]
   for (var hook of hooks) {
     var hookInstances = []
     for (var plugin of pluginList) {
       try {
-        if (plugin[hook]) {
-          for (var pluginHook of plugin[hook]) {
+        var thisPluginHooks = plugin[hook]
+        if (thisPluginHooks) {
+          if (!Array.isArray(thisPluginHooks)) {
+            thisPluginHooks = [thisPluginHooks]
+          }
+          for (var pluginHook of thisPluginHooks) {
             hookInstances.push({
               instance: pluginHook,
               origin: plugin.origin
@@ -104,10 +111,7 @@ var updateRegisteredPlugins = async function (relaxedGlobals, inputDir) {
     '.svg',
     '.png',
     '.jpeg',
-    '.jpg',
-    '.mermaid',
-    '.flowchart',
-    '.flowchart.json'
+    '.jpg'
   ]
 
   for (var watcher of relaxedGlobals.pluginHooks.watchers) {

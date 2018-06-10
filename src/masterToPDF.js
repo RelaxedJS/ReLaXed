@@ -3,8 +3,6 @@ const colors = require('colors/safe')
 const cheerio = require('cheerio')
 const fs = require('fs')
 const filesize = require('filesize')
-const katex = require('katex')
-const sass = require('node-sass')
 const path = require('path')
 const { performance } = require('perf_hooks')
 
@@ -14,13 +12,16 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   /*
    *            Generate HTML
    */
+  var pluginHooks = relaxedGlobals.pluginHooks
   var html
   if (masterPath.endsWith('.pug')) {
     var pluginPugHeaders = []
-    for (var pugHeader of relaxedGlobals.pluginHooks.pugHeaders) {
+    for (var pugHeader of pluginHooks.pugHeaders) {
       pluginPugHeaders.push(pugHeader.instance)
     }
     pluginPugHeaders = pluginPugHeaders.join('\n\n')
+
+    var pugFilters = Object.assign(...pluginHooks.pugFilters.map(o => o.instance))
     try {
       var masterPug = fs.readFileSync(masterPath, 'utf8')
 
@@ -32,14 +33,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
         path: path,
         require: require,
         performance: performance,
-        filters: {
-          katex: (text, options) => katex.renderToString(text),
-          scss: function (text, options) {
-            var file = options.filename
-            options = file.endsWith('scss') ? { file } : { data: text }
-            return sass.renderSync(options).css.toString('utf8')
-          }
-        }
+        filters: pugFilters
       })
     } catch (error) {
       console.log(error.message)
@@ -53,9 +47,15 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   /*
    *            MODIFY HTML
    */
-  html = `<html><body>${html}</body></html>`
-  for (var htmlFilter of relaxedGlobals.pluginHooks.htmlFilters) {
-    html = await htmlFilter.instance(html)
+  var head = pluginHooks.headElements.map(e => e.instance).join(`\n\n`)
+  html = `
+    <html>
+      <head> ${head} </head>
+      <body> ${html} </body>
+    </html>`
+
+  for (var htmlModifier of pluginHooks.htmlModifiers) {
+    html = await htmlModifier.instance(html)
   }
 
   fs.writeFileSync(tempHTMLPath, html)
@@ -77,15 +77,15 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   console.log(colors.magenta(`... Network idled in ${((tNetwork - tLoad) / 1000).toFixed(1)}s`))
 
   // Get header/footer template
-  var head = await page.$eval('#page-header', element => element.innerHTML)
+  var header = await page.$eval('#page-header', element => element.innerHTML)
     .catch(error => '')
-  var foot = await page.$eval('#page-footer', element => element.innerHTML)
+  var footer = await page.$eval('#page-footer', element => element.innerHTML)
     .catch(error => '')
 
-  if (head !== '' && foot === '') {
-    foot = '<span></span>'
+  if (header !== '' && footer === '') {
+    footer = '<span></span>'
   }
-  if (foot !== '' && head === '') {
+  if (footer !== '' && header === '') {
     head = '<span></span>'
   }
   /*
@@ -93,9 +93,9 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
    */
   var options = {
     path: outputPath,
-    displayHeaderFooter: head || foot,
-    headerTemplate: head,
-    footerTemplate: foot,
+    displayHeaderFooter: header || footer,
+    headerTemplate: header,
+    footerTemplate: footer,
     printBackground: true
   }
 
@@ -120,11 +120,11 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     options.size = size
   }
 
-  for (var pageModifier of relaxedGlobals.pluginHooks.pageModifiers) {
+  for (var pageModifier of pluginHooks.pageModifiers) {
     await pageModifier.instance(page)
   }
 
-  for (pageModifier of relaxedGlobals.pluginHooks.page2ndModifiers) {
+  for (pageModifier of pluginHooks.page2ndModifiers) {
     await pageModifier.instance(page)
   }
 

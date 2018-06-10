@@ -1,8 +1,8 @@
-const { spawn } = require( 'child_process' )
+const { spawn } = require('child_process')
 const path = require('path')
 const fs = require('fs')
 // const { pdfToPngThumbnail } = require('./pdf2png.js')
-const PDFImage = require("pdf-image").PDFImage
+const PDFImage = require('pdf-image').PDFImage
 const PixelDiff = require('pixel-diff')
 const JsDiff = require('diff')
 
@@ -28,6 +28,9 @@ describe('Sample tests', function () {
     },
     {
       sampleName: 'mathjax',
+      timeout: 10000
+    }, {
+      sampleName: 'katex',
       timeout: 10000
     },
     {

@@ -4,7 +4,7 @@ const mjpage = require('mathjax-node-page')
 
 exports.constructor = async function (params) {
   return {
-    htmlFilters: [ asyncMathjax ]
+    htmlModifiers: [ asyncMathjax ]
   }
 }
 

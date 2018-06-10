@@ -19,24 +19,9 @@ exports.constructor = async function (params) {
 }
 
 var csvTtableToPug = async function (tablePath) {
+  const rows = await csv({output: 'csv', noheader: true}).fromFile(tablePath)
+  console.log(rows)
   var extension, header
-  var rows = []
-  var csvPromise = new Promise(resolve => {
-    csv({ noheader: true })
-      .fromFile(tablePath)
-      .on('csv', (csvRow) => {
-        rows.push(csvRow)
-      })
-      .on('done', (error) => {
-        if (error) {
-          console.log('error', error)
-          resolve(false)
-        } else {
-          resolve(true)
-        }
-      })
-  })
-  await csvPromise
   if (tablePath.endsWith('.htable.csv')) {
     extension = '.htable.csv'
     header = rows.shift()
@@ -48,6 +33,7 @@ var csvTtableToPug = async function (tablePath) {
     header: header,
     tbody: rows
   })
+  console.log(tablePath, header, rows)
   var pugPath = tablePath.substr(0, tablePath.length - extension.length) + '.pug'
   var jade = await new Promise(resolve => {
     html2jade.convertHtml(html, { bodyless: true }, function (err, jade) {

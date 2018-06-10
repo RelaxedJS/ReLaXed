@@ -5,7 +5,7 @@ exports.constructor = async function (pluginDefinition) {
     pugHeaders: [
       `- var name = "${pluginDefinition.name}"`
     ],
-    htmlFilters: [
+    htmlModifiers: [
       function (html) {
         return html.replace('INSERT_NAME_HERE', pluginDefinition.name)
       }

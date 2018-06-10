@@ -14,7 +14,6 @@ exports.constructor = async function (params) {
           await optimizeSVG(svgPath, params['jpeg-quality'] || 85)
         }
       }
-    ],
-    htmlFilters: []
+    ]
   }
 }

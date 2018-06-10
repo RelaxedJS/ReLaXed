@@ -1,9 +1,9 @@
-t,[[head
+t,<<head
   th H1
   th H2
   th H3
-t]],body
-  tr
+t>>,body
+,<<  tr
     td A1
     td A2
     td A3
@@ -15,3 +15,4 @@ t]],body
     td C1
     td C2
     td C3
+>>
