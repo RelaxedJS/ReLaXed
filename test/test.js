@@ -63,7 +63,7 @@ describe('Sample tests', function () {
           imageAPath: paths.expected,
           imageBPath: imgPath,
           thresholdType: PixelDiff.THRESHOLD_PERCENT,
-          threshold: 0.01, // 1% threshold
+          threshold: 0.05, // 5% threshold
           imageOutputPath: paths.diff
         })
         diff.run((error, result) => {
