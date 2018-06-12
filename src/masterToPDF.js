@@ -6,7 +6,7 @@ const filesize = require('filesize')
 const path = require('path')
 const { performance } = require('perf_hooks')
 
-exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, outputPath) {
+exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, outputPath, locals) {
   var t0 = performance.now()
   var page = relaxedGlobals.puppeteerPage
   /*
@@ -25,7 +25,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     try {
       var masterPug = fs.readFileSync(masterPath, 'utf8')
 
-      html = pug.render(pluginPugHeaders + '\n' + masterPug, {
+      html = pug.render(pluginPugHeaders + '\n' + masterPug, Object.assign({}, locals ? locals : {}, {
         filename: masterPath,
         fs: fs,
         cheerio: cheerio,
@@ -34,7 +34,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
         require: require,
         performance: performance,
         filters: pugFilters
-      })
+      }))
     } catch (error) {
       console.log(error.message)
       console.error(colors.red('There was a Pug error (see above)'))
