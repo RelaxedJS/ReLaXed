@@ -36,6 +36,10 @@ describe('Sample tests', function () {
     {
       sampleName: 'header_and_footer',
       timeout: 10000
+    },
+    {
+      sampleName: 'utf8-characters',
+      timeout: 10000
     }
   ]
   tests.forEach(function (test) {
