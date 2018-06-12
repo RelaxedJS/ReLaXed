@@ -1,4 +1,14 @@
 - var data = require(path.join(basedir, 'data.json'))
+h1 You're a #{ data.occupation }, #{ data.name } !!!!
 
-h1(style="font-size: 140px; margin-top: 100px; text-align:center;").
-  You're a #{ data.occupation }, #{ data.name } !!!!
+
+style.
+  body {
+    font-family: Georgia;
+    font-size: 14px;
+  }
+  h1 {
+    font-size: 140px;
+    margin-top: 100px;
+    text-align:center;
+  }

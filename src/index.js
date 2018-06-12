@@ -149,7 +149,7 @@ async function main () {
 
 async function build (filepath) {
   var shortFileName = filepath.replace(inputDir, '')
-  if (path.basename(filepath) === 'config.yml') {
+  if ((path.basename(filepath) === 'config.yml') || (filepath.endsWith('.plugin.js'))) {
     await updateConfig()
     return
   }

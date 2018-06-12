@@ -50,7 +50,10 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   var head = pluginHooks.headElements.map(e => e.instance).join(`\n\n`)
   html = `
     <html>
-      <head> ${head} </head>
+      <head>
+        <meta charset="UTF-8">
+        ${head}
+      </head>
       <body> ${html} </body>
     </html>`
 
