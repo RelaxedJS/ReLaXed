@@ -5,7 +5,7 @@ node_js:
 
 before_install:
   - sudo apt-get -qq update
-  - apt-get install ttf-mscorefonts-installer
+  - sudo apt-get install ttf-mscorefonts-installer
   - sudo apt-get install imagemagick ghostscript poppler-utils
 
 before_script:
