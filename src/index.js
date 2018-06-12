@@ -22,6 +22,7 @@ program
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
   .option('--bo, --build-once', 'Build once only, do not watch')
+  .option('-l, --locals <json>', 'Json locals for pug rendering')
   .action(function (inp, out) {
     input = inp
     output = out
@@ -75,6 +76,16 @@ const tempHTMLPath = path.join(tempDir, inputFilenameNoExt + '_temp.htm')
 let watchLocations = [inputDir]
 if (program.watch) {
   watchLocations = watchLocations.concat(program.watch)
+}
+
+let locals;
+if(program.locals) {
+  try {
+      locals = JSON.parse(JSON.parse(program.locals));
+  } catch(e) {
+    console.error(e);
+    colors.red('ReLaXed error: Could not parse locals JSON, see above.');
+  }
 }
 
 // Google Chrome headless configuration
@@ -183,7 +194,7 @@ async function build (filepath) {
   }
 
   if (!taskPromise) {
-    taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath)
+    taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath, locals)
   }
   await taskPromise
   var duration = ((performance.now() - t0) / 1000).toFixed(2)
