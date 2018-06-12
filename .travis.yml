@@ -5,9 +5,9 @@ node_js:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo echo ttf-mscorefonts-installer msttcorefonts/accepted-mscorefonts-eula select true | debconf-set-selections
-  - sudo apt-get install ttf-mscorefonts-installer
   - sudo apt-get install imagemagick ghostscript poppler-utils
+  - wget -O "Raleway.zip" "https://fonts.google.com/download?family=Raleway"
+  - sudo unzip -u "Raleway.zip" -d /root/.fonts
 
 before_script:
   - npm link
