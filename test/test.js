@@ -54,7 +54,7 @@ describe('Sample tests', function () {
         lastTestPNG: path.join(basedir, 'last_test_result.png'),
         html: path.join(basedir, 'master_temp.htm')
       }
-      var process = spawn('relaxed', [ paths.master, '--build-once' ])
+      var process = spawn('relaxed', [paths.master, '--build-once', '--no-sandbox'])
       process.on('close', async function (code) {
         assert.equal(code, 0)
         var pdfImage = new PDFImage(paths.pdf, { combinedImage: true })
