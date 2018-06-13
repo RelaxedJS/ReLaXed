@@ -6,8 +6,6 @@ node_js:
 before_install:
   - sudo apt-get -qq update
   - sudo apt-get install imagemagick ghostscript poppler-utils
-  - wget -O "Raleway.zip" "https://fonts.google.com/download?family=Raleway"
-  - sudo unzip -u "Raleway.zip" -d /root/.fonts
 
 before_script:
   - npm link
