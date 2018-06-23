@@ -13,25 +13,26 @@ program
   .usage('<input> [output] [options]')
   .arguments('<input> [output] [options]')
   .option('--width, -w', 'width in pixels')
-  .option('--shadow, -s', 'shadow size in pixels', [])
+  .option('--delay, -d', 'delay between frames')
+  .option('--colors, -c', 'number of colors')
   .action(function (inp, out) {
     input = inp
     output = out
   })
 
-program.parse(process.argv)
+output = output || (input.slice(0, input.length - 4) + '.gif')
+var width = (program.width || 400).toString()
+var delay = (100 * (program.delay || 1.0)).toString()
+var ncolors = (program.colors || 256).toString()
 
-program.shadow = program.shadow || 15
+program.parse(process.argv)
+console.log('...done.')
 var subprocess = spawn('convert', [
-  '-density', '300',
-  input + '[0]',
-  '-resize', ((program.size || 600) - 4 * program.shadow).toString(),
-  `(`, '+clone', '-background', 'black',
-  '-shadow', `${program.shadow}x${program.shadow}+1+1`, `)`,
-  '+swap',
-  '-background', 'white',
-  '-layers', 'merge',
-  '+repage',
+  '-delay', delay,
+  '-resize', width,
+  '-colors', ncolors,
+  '-layers', 'optimize',
+  input,
   output
 ])
 

@@ -5,7 +5,8 @@
   "main": "src/index.js",
   "bin": {
     "relaxed": "src/index.js",
-    "pretty-pdf-thumbnail": "src/cli-tools/pretty-pdf-thumbnail.js"
+    "pretty-pdf-thumbnail": "src/cli-tools/pretty-pdf-thumbnail.js",
+    "pdf2gif": "src/cli-tools/pdf2gif.js"
   },
   "scripts": {
     "test": "mocha"
