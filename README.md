@@ -122,7 +122,7 @@ relaxed my_document.pug --build-once
 
 To go further:
 
-- Read more about [usage and options]((https://github.com/RelaxedJS/ReLaXed/wiki/Command-line-options)) of the ``relaxed`` command.
+- Read more about [usage and options](https://github.com/RelaxedJS/ReLaXed/wiki/Command-line-options) of the ``relaxed`` command.
 - Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html)
 - Learn how to use or write [ReLaXed plugins](https://github.com/RelaxedJS/ReLaXed/wiki/Plugins)
 - Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
