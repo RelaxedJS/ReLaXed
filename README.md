@@ -99,35 +99,35 @@ This will provide your system with the ``relaxed`` command. If the installation 
 
 ## Getting started
 
-To start a project, create a new, empty ``my_document.pug`` file, and start a ReLaXed process from a terminal:
-
-```
-relaxed my_document.pug
-```
-
-ReLaXed will watch ``my_document.pug`` and its directory. Every time a file changes, ``my_document.pug`` will be compiled as ``my_document.pdf``.
-
-Now write and save the following in ``my_document.pug``:
+To start a project, create a new document ``my_document.pug`` with the following Pug content:
 
 ```pug
 h1 My document's title
 p A paragraph in my document
 ```
-A new file, ``my_document.pdf``, will be created. Every time you modify and save the sources, the file is automatically updated (make sure you use a PDF viewer with auto-refresh to see your changes happen in *real-time*). That's all there is to know to start creating your first document!
 
-It is also possible to generate the PDF file directly (without waiting for file changes) with this command:
+Then start ReLaXed from a terminal:
+
+```
+relaxed my_document.pug
+```
+
+ReLaXed will generate ``my_document.pdf`` from ``my_document.pug``, then watch its directory and subdirectories so that every time a file changes, ``my_document.pdf`` will be re-generated.
+
+It is also possible to generate the PDF file just once, with no sub-sequent file-watching, with this command:
 
 ```
 relaxed my_document.pug --build-once
 ```
 
-See [this wiki section](https://github.com/RelaxedJS/ReLaXed/wiki/Features#starting-relaxed) for more options.
 To go further:
 
+- Read more about [usage and options](https://github.com/RelaxedJS/ReLaXed/wiki/Command-line-options) of the ``relaxed`` command.
 - Learn more about the capabilities of the [Pug language](https://pugjs.org/api/getting-started.html)
+- Learn how to use or write [ReLaXed plugins](https://github.com/RelaxedJS/ReLaXed/wiki/Plugins)
 - Browse the [examples](https://github.com/RelaxedJS/ReLaXed-examples)
 - Read about our [recommended setup](https://github.com/RelaxedJS/ReLaXed/wiki/Tips-and-recommendations) to use ReLaXed
-- Learn some [advanced features](https://github.com/RelaxedJS/ReLaXed/wiki/Features) of ReLaxed
+- read about [special file rendering](https://github.com/RelaxedJS/ReLaXed/wiki/Special-file-renderings) in ReLaxed
 - Read [these comparisons](https://github.com/RelaxedJS/ReLaXed/wiki/ReLaXed-vs-other-solutions) between ReLaXed and other document-editing systems
 
 ## Why yet another PDF document creator?
