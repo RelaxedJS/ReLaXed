@@ -78,13 +78,13 @@ if (program.watch) {
   watchLocations = watchLocations.concat(program.watch)
 }
 
-let locals;
-if(program.locals) {
+let locals
+if (program.locals) {
   try {
-      locals = JSON.parse(JSON.parse(program.locals));
-  } catch(e) {
-    console.error(e);
-    colors.red('ReLaXed error: Could not parse locals JSON, see above.');
+    locals = JSON.parse(program.locals)
+  } catch (e) {
+    console.error(e)
+    colors.red('ReLaXed error: Could not parse locals JSON, see above.')
   }
 }
 
