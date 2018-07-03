@@ -8,8 +8,8 @@ const JsDiff = require('diff')
 
 var assert = require('assert')
 
-fs.writeFile("/tmp/absolute_path_test.scss",
-             "h1 {color: red; font-size: 140px; text-align:center;}")
+fs.writeFileSync("/tmp/absolute_path_test.scss",
+                 "h1 {color: red; font-size: 140px; text-align:center;}")
 
 describe('Sample tests', function () {
   var tests = [
