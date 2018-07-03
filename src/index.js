@@ -23,6 +23,8 @@ program
   .option('-t, --temp [location]', 'Directory for temp file')
   .option('--bo, --build-once', 'Build once only, do not watch')
   .option('-l, --locals <json>', 'Json locals for pug rendering')
+  .option('--basedir <location>', 'Base directory for absolute paths, e.g. /')
+
   .action(function (inp, out) {
     input = inp
     output = out
@@ -88,6 +90,8 @@ if (program.locals) {
   }
 }
 
+
+
 // Google Chrome headless configuration
 const puppeteerConfig = {
   headless: true,
@@ -108,7 +112,8 @@ const puppeteerConfig = {
 const relaxedGlobals = {
   busy: false,
   config: {},
-  configPlugins: []
+  configPlugins: [],
+  basedir: program.basedir || inputDir
 }
 
 var updateConfig = async function () {

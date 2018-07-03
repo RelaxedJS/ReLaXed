@@ -6,7 +6,10 @@ const PDFImage = require('pdf-image').PDFImage
 const PixelDiff = require('pixel-diff')
 const JsDiff = require('diff')
 
-var assert = require('assert');
+var assert = require('assert')
+
+fs.writeFile("/tmp/absolute_path_test.scss",
+             "h1 {color: red; font-size: 140px; text-align:center;}")
 
 describe('Sample tests', function () {
   var tests = [
@@ -40,6 +43,11 @@ describe('Sample tests', function () {
     {
       sampleName: 'utf8-characters',
       timeout: 10000
+    },
+    {
+      sampleName: 'absolute_path',
+      timeout: 10000,
+      cmdOptions: ['--basedir', '/']
     }
   ]
   tests.forEach(function (test) {
@@ -54,7 +62,10 @@ describe('Sample tests', function () {
         lastTestPNG: path.join(basedir, 'last_test_result.png'),
         html: path.join(basedir, 'master_temp.htm')
       }
-      var process = spawn('relaxed', [paths.master, '--build-once', '--no-sandbox'])
+      var process = spawn(
+        'relaxed',
+        [paths.master, '--build-once', '--no-sandbox'].concat(test.cmdOptions || [])
+      )
       process.on('close', async function (code) {
         assert.equal(code, 0)
         var pdfImage = new PDFImage(paths.pdf, { combinedImage: true })

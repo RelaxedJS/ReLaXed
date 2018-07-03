@@ -1,6 +1,5 @@
 const bibliography = require('./bibliography')
 const chartjs = require('./chartjs')
-const svg = require('./svg')
 const table = require('./table')
 const mathjax = require('./mathjax')
 const vegalite = require('./vegalite')
@@ -14,7 +13,6 @@ const katex = require('./katex')
 exports.plugins = {
   bibliography,
   mathjax,
-  // svg,
   katex
 }
 
