@@ -1,4 +1,3 @@
-const bibliography = require('./bibliography')
 const chartjs = require('./chartjs')
 const table = require('./table')
 const mathjax = require('./mathjax')
@@ -11,7 +10,6 @@ const katex = require('./katex')
 // WE WILL CERTAINLY TAKE OUT MOST OF THEM, AS SEPARATE PLUGINS
 
 exports.plugins = {
-  bibliography,
   mathjax,
   katex
 }

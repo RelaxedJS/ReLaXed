@@ -18,10 +18,6 @@ describe('Sample tests', function () {
       timeout: 10000
     },
     {
-      sampleName: 'bibliography',
-      timeout: 10000
-    },
-    {
       sampleName: 'local_plugin',
       timeout: 10000
     },
