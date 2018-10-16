@@ -69,20 +69,27 @@ describe('Sample tests', function () {
       process.on('close', async function (code) {
         assert.equal(code, 0)
         var pdfImage = new PDFImage(paths.pdf, { combinedImage: true })
-        var imgPath = await pdfImage.convertFile()
-        let diff = new PixelDiff({
+        try {
+          var imgPath = await pdfImage.convertFile()
+        } catch (error) {
+          done(error)
+        }
+        
+       
+        var diff = new PixelDiff({
           imageAPath: paths.expected,
           imageBPath: imgPath,
           thresholdType: PixelDiff.THRESHOLD_PERCENT,
           threshold: 0.01, // 1% threshold
           imageOutputPath: paths.diff
         })
+        
         diff.run((error, result) => {
           fs.unlinkSync(paths.pdf)
           fs.unlinkSync(paths.html)
           fs.renameSync(imgPath, paths.lastTestPNG)
           if (error) {
-            throw error
+            console.error(error)
           } else {
             assert(diff.hasPassed(result.code))
           }

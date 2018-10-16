@@ -89,8 +89,8 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   if (header !== '' && footer === '') {
     footer = '<span></span>'
   }
-  if (footer !== '' && header === '') {
-    head = '<span></span>'
+  if ((footer !== '') && (header === '')) {
+    header = '<span></span>'
   }
   /*
    *            Create PDF options
