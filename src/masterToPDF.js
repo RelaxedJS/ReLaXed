@@ -97,7 +97,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
    */
   var options = {
     path: outputPath,
-    displayHeaderFooter: header || footer,
+    displayHeaderFooter: !!(header || footer),
     headerTemplate: header,
     footerTemplate: footer,
     printBackground: true
