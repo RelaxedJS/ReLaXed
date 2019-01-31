@@ -11,7 +11,7 @@
   "scripts": {
     "test": "mocha"
   },
-  "author": "Drew-S & Zulko",
+  "author": "Zulko",
   "homepage": "https://github.com/RelaxedJS",
   "license": "ISC",
   "dependencies": {

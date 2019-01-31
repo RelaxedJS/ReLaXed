@@ -70,9 +70,22 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
   /*
    *            LOAD HTML
    */
-  await page.goto('file:' + tempHTMLPath, {
-    waitUntil: ['load', 'domcontentloaded']
-  })
+  try {
+    await page.goto('file:' + tempHTMLPath, {
+      waitUntil: ['load', 'domcontentloaded'],
+      timeout: 1000 * (relaxedGlobals.config.pageRenderingTimeout || 30)
+    })
+  } catch(error) {
+    console.log(error.message)
+    console.error(colors.red('There was a page loading error.'))
+    if (error.message.indexOf('Timeout') > 0) {
+      console.log('Hey this looks like a timeout. Your project must be big. ' +
+                  'Increase the timeout by writing "pageRenderingTimeout: 60" ' +
+                  'at the top of your config.yml. Default is 30 (seconds).')
+    }
+    return
+  }
+  
   var tLoad = performance.now()
   console.log(colors.magenta(`... Document loaded in ${((tLoad - tHTML) / 1000).toFixed(1)}s`))
 

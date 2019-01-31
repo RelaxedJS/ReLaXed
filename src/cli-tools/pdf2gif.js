@@ -19,14 +19,11 @@ program
     input = inp
     output = out
   })
-
+program.parse(process.argv)
 output = output || (input.slice(0, input.length - 4) + '.gif')
 var width = (program.width || 400).toString()
 var delay = (100 * (program.delay || 1.0)).toString()
 var ncolors = (program.colors || 256).toString()
-
-program.parse(process.argv)
-console.log('...done.')
 var subprocess = spawn('convert', [
   '-delay', delay,
   '-resize', width,
