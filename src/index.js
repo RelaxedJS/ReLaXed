@@ -22,7 +22,7 @@ program
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
   .option('--bo, --build-once', 'Build once only, do not watch')
-  .option('-l, --locals <json>', 'Json locals for pug rendering')
+  .option('-l, --locals <json>', 'Json locals for pug rendering, string or path to .json file')
   .option('--basedir <location>', 'Base directory for absolute paths, e.g. /')
 
   .action(function (inp, out) {
@@ -81,9 +81,24 @@ if (program.watch) {
 }
 
 let locals
+
 if (program.locals) {
+  let jsonString
+
+  if (path.extname(program.locals) === '.json') {
+    try {
+      const jsonPath = path.join(inputDir, program.locals)
+      jsonString = fs.readFileSync(jsonPath, { encoding: 'utf-8' })
+    } catch (e) {
+      console.error(e)
+      console.red(`ReLaXed error: Could not read .json file at: ${jsonPath}`)
+    }
+  } else {
+    jsonString = program.locals;
+  }
+
   try {
-    locals = JSON.parse(program.locals)
+    locals = JSON.parse(jsonString)
   } catch (e) {
     console.error(e)
     colors.red('ReLaXed error: Could not parse locals JSON, see above.')
