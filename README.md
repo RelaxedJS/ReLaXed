@@ -94,7 +94,7 @@ Install ReLaXed via [NPM](https://www.npmjs.com/) with this command (do not use 
 npm i -g relaxedjs
 ```
 
-This will provide your system with the ``relaxed`` command. If the installation fails, refer to the [troubleshooting page](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting).
+This will provide your system with the ``relaxed`` command. If the installation fails, refer to the [troubleshooting page](https://github.com/RelaxedJS/ReLaXed/wiki/Troubleshooting). You can also use ReLaXed via Docker (see [this repository](https://github.com/jonathanasquier/ReLaXed-docker/blob/master/Dockerfile))
 
 
 ## Getting started
