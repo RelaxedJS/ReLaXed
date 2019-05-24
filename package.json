@@ -8,9 +8,6 @@
     "pretty-pdf-thumbnail": "src/cli-tools/pretty-pdf-thumbnail.js",
     "pdf2gif": "src/cli-tools/pdf2gif.js"
   },
-  "files": [
-       "/src/plugins.js"
-  ],
   "scripts": {
     "test": "mocha"
   },
