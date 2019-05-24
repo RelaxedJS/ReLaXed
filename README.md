@@ -152,6 +152,71 @@ ReLaXed consists of a few lines of code binding together other software. It uses
 
 <p align="center"><img width='600px' src="https://github.com/RelaxedJS/ReLaXed/raw/master/docs/relaxed_stack.png" /></p>
 
+## Using it as a Node Module
+**MasterToPDF.js** is exposed by default as main package, which can be used directly.
+
+An Example: 
+
+```javascript
+
+const { masterToPDF } = require('relaxedjs');
+const puppeteer = require('puppeteer');
+const plugins = require('relaxedjs/src/plugins');
+
+class HTML2PDF {
+    constructor(){
+        this.puppeteerConfig = {
+            headless: true,
+            args: [
+                '--no-sandbox',
+                '--disable-translate',
+                '--disable-extensions',
+                '--disable-sync'
+            ],
+        };
+
+        this.relaxedGlobals = {
+            busy: false,
+            config: {},
+            configPlugins: [],
+        };
+    }
+
+    async _initializePlugins() {
+        for (let [i, plugin] of plugins.builtinDefaultPlugins.entries()) {
+            plugins.builtinDefaultPlugins[i] = await plugin.constructor();
+        }
+        await plugins.updateRegisteredPlugins(this.relaxedGlobals, '/');
+
+        let chrome = await puppeteer.launch(this.puppeteerConfig);
+        this.relaxedGlobals.puppeteerPage = await chrome.newPage();
+    }
+
+    async pdf(template_pug, json_data){
+        await this._initPDFReader();
+        
+        await masterToPDF(template_pug,
+            this.relaxedGlobals,
+            '<path-to-render-html>.htm',
+            '<path-to-render-pdf>.pdf',
+            json_data,
+        );
+    }
+}
+
+module.exports = new HTML2PDF();
+```
+Usage:
+
+```javascript
+const HTML2PDF = require('./HTML2PDF.js');
+(async () => {
+    await HTML2PDF._initializePlugins();
+    await HTML2PDF.pdf('./template.pug', {"a":"b", "c":"d"});
+})();
+```
+
+
 ## Contribute!
 
 ReLaXed is an open-source framework originally written by [Zulko](https://github.com/Zulko) and released on [Github](https://github.com/RelaxedJS/ReLaXed) under the ISC licence. Everyone is welcome to contribute!
