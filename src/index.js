@@ -95,7 +95,7 @@ if (program.locals) {
 // Google Chrome headless configuration
 const puppeteerConfig = {
   headless: true,
-  args: (program.sandbox ? ['--no-sandbox'] : []).concat([
+  args: (!program.sandbox ? ['--no-sandbox'] : []).concat([
     '--disable-translate',
     '--disable-extensions',
     '--disable-sync'
