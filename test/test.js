@@ -64,7 +64,10 @@ describe('Sample tests', function () {
       )
       process.on('close', async function (code) {
         assert.equal(code, 0)
-        var pdfImage = new PDFImage(paths.pdf, { combinedImage: true })
+        var pdfImage = new PDFImage(paths.pdf, {
+          combinedImage: true,
+          graphicsMagick: true
+        })
         try {
           var imgPath = await pdfImage.convertFile()
         } catch (error) {

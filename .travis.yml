@@ -6,7 +6,7 @@ node_js:
 
 before_install:
   - sudo apt-get -qq update
-  - sudo apt-get install imagemagick ghostscript poppler-utils
+  - sudo apt-get install imagemagick ghostscript poppler-utils graphicsmagick
 
 before_script:
   - npm link
