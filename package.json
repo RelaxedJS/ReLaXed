@@ -28,6 +28,8 @@
     "jstransformer-highlight": "^2.0.0",
     "jstransformer-markdown-it": "^2.1.0",
     "katex": "^0.10.0-beta",
+    "markdown-it": "^10.0.0",
+    "markdown-it-footnote": "^3.0.2",
     "mathjax-node-page": "^3.0.1",
     "mermaid": "^8.0.0-rc.8",
     "node-sass": "^4.9.0",

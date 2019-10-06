@@ -1,6 +1,7 @@
 const chartjs = require('./chartjs')
 const table = require('./table')
 const mathjax = require('./mathjax')
+const markdown = require('./markdown')
 const vegalite = require('./vegalite')
 const mermaid = require('./mermaid')
 const flowchart = require('./flowchart')
@@ -24,5 +25,6 @@ exports.defaultPlugins = [
   vegalite,
   flowchart,
   mermaid,
-  scss
+  scss,
+  markdown
 ]
