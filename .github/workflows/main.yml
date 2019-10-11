@@ -1,0 +1,27 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        platform: [ubuntu-latest]
+        node: [ '12', '10', '8' ]
+    name: Node ${{ matrix.node }} (${{ matrix.platform }})
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v1
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - name: update package list
+        run: |
+        sudo apt-get -qq update && \
+        sudo apt-get install imagemagick ghostscript poppler-utils graphicsmagick
+      - name: install dependencies
+        run: npm install
+      - name: link dependencies
+        run: npm link
+      - name: run tests
+        run: npm test
