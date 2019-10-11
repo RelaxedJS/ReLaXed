@@ -19,7 +19,7 @@ exports.constructor = async function (params) {
 }
 
 var csvTtableToPug = async function (tablePath) {
-  const rows = await csv({output: 'csv', noheader: true}).fromFile(tablePath)
+  const rows = await csv({output: 'csv', noheader: true, delimiter: 'auto'}).fromFile(tablePath)
   console.log(rows)
   var extension, header
   if (tablePath.endsWith('.htable.csv')) {
