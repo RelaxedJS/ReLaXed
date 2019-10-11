@@ -2,7 +2,7 @@
 
 # ReLaXed
 
-[![Build Status](https://travis-ci.org/RelaxedJS/ReLaXed.svg?branch=master)](https://travis-ci.org/RelaxedJS/ReLaXed)
+[![Build Status](https://github.com/RelaxedJS/ReLaXed/workflows/CI/badge.svg)](https://github.com/RelaxedJS/ReLaXed/actions?workflow=CI)
 
 ReLaXed creates PDF documents interactively using HTML or [Pug](https://pugjs.org/api/getting-started.html) (a shorthand for HTML). It allows complex layouts to be defined with CSS and JavaScript, while writing the content in a friendly, minimal syntax close to Markdown or LaTeX.
 
