@@ -5,11 +5,11 @@ const fs = require('fs')
 const PDFImage = require('pdf-image').PDFImage
 const PixelDiff = require('pixel-diff')
 const JsDiff = require('diff')
+const assert = require('assert')
 
-var assert = require('assert')
+fs.writeFileSync("/tmp/absolute_path_test.scss", "h1 {color: red; font-size: 140px; text-align:center;}")
 
-fs.writeFileSync("/tmp/absolute_path_test.scss",
-                 "h1 {color: red; font-size: 140px; text-align:center;}")
+const relaxed = path.join(__dirname, './../src/index.js')
 
 describe('Sample tests', function () {
   var tests = [
@@ -20,6 +20,16 @@ describe('Sample tests', function () {
     {
       sampleName: 'local_plugin',
       timeout: 10000
+    },
+    {
+      sampleName: 'data_locals',
+      timeout: 10000,
+      cmdOptions: ['--locals', '{ "name": "Harry", "occupation": "Wazzzard" }']
+    },
+    {
+      sampleName: 'data_locals_file',
+      timeout: 10000,
+      cmdOptions: ['--locals', './data.json']
     },
     {
       sampleName: 'data_require',
@@ -58,8 +68,9 @@ describe('Sample tests', function () {
         lastTestPNG: path.join(basedir, 'last_test_result.png'),
         html: path.join(basedir, 'master_temp.htm')
       }
+
       var process = spawn(
-        'relaxed',
+        relaxed,
         [paths.master, '--build-once', '--no-sandbox'].concat(test.cmdOptions || [])
       )
       process.on('close', async function (code) {
@@ -73,8 +84,8 @@ describe('Sample tests', function () {
         } catch (error) {
           done(error)
         }
-        
-       
+
+
         var diff = new PixelDiff({
           imageAPath: paths.expected,
           imageBPath: imgPath,
@@ -82,7 +93,7 @@ describe('Sample tests', function () {
           threshold: 0.01, // 1% threshold
           imageOutputPath: paths.diff
         })
-        
+
         diff.run((error, result) => {
           fs.unlinkSync(paths.pdf)
           fs.unlinkSync(paths.html)
@@ -142,7 +153,7 @@ describe('Special rendering tests', function () {
         diff: path.join(basedir, 'diff.' + diffExtension),
         lastOutput: path.join(basedir, 'last_test_' + test.output)
       }
-      var process = spawn('relaxed', [ paths.master, '--build-once' ])
+      var process = spawn(relaxed, [ paths.master, '--build-once' ])
       process.on('close', async function (code) {
         assert.equal(code, 0)
         if (test.outputType === 'text') {

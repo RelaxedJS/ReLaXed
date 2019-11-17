@@ -10,6 +10,7 @@ const path = require('path')
 const fs = require('fs')
 const plugins = require('./plugins')
 const { masterToPDF } = require('./masterToPDF.js')
+const { parseLocals, isLastLocalJsonPath } = require('./parseLocals');
 
 var input, output
 const version = require('../package.json').version
@@ -22,7 +23,7 @@ program
   .option('-w, --watch <locations>', 'Watch other locations', [])
   .option('-t, --temp [location]', 'Directory for temp file')
   .option('--bo, --build-once', 'Build once only, do not watch')
-  .option('-l, --locals <json>', 'Json locals for pug rendering')
+  .option('-l, --locals <json>', 'Json locals for pug rendering, string or path to .json file')
   .option('--basedir <location>', 'Base directory for absolute paths, e.g. /')
 
   .action(function (inp, out) {
@@ -80,17 +81,7 @@ if (program.watch) {
   watchLocations = watchLocations.concat(program.watch)
 }
 
-let locals
-if (program.locals) {
-  try {
-    locals = JSON.parse(program.locals)
-  } catch (e) {
-    console.error(e)
-    colors.red('ReLaXed error: Could not parse locals JSON, see above.')
-  }
-}
-
-
+let locals = parseLocals(program.locals, inputDir)
 
 // Google Chrome headless configuration
 const puppeteerConfig = {
@@ -169,10 +160,17 @@ async function build (filepath) {
     await updateConfig()
     return
   }
+
+  var updatedLocals = false
+  if (isLastLocalJsonPath(filepath)) {
+    locals = parseLocals(program.locals, inputDir)
+    updatedLocals = true
+  }
+
   var page = relaxedGlobals.puppeteerPage
   // Ignore the call if ReLaXed is already busy processing other files.
 
-  if (!(relaxedGlobals.watchedExtensions.some(ext => filepath.endsWith(ext)))) {
+  if (!updatedLocals && !(relaxedGlobals.watchedExtensions.some(ext => filepath.endsWith(ext)))) {
     if (!(['.pdf', '.htm'].some(ext => filepath.endsWith(ext)))) {
       console.log(colors.grey(`No process defined for file ${shortFileName}.`))
     }
