@@ -2,7 +2,7 @@
   "name": "relaxedjs",
   "version": "0.2.3",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
-  "main": "src/index.js",
+  "main": "src/masterToPDF.js",
   "bin": {
     "relaxed": "src/index.js",
     "pretty-pdf-thumbnail": "src/cli-tools/pretty-pdf-thumbnail.js",
