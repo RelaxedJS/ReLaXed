@@ -1,18 +1,29 @@
-t,<<head
-  th H1
-  th H2
-  th H3
-t>>,body
-,<<  tr
-    td A1
-    td A2
-    td A3
+thead
+  th,<<
+>>, ,<<   p >>,H1
+  th,<<
+>>, ,<<   p >>,H2
+  th,<<
+>>, ,<<   p >>,H3
+tbody
   tr
-    td B1
-    td B2
-    td B3
+    td,<<
+>>, ,<<     p >>,A1
+    td,<<
+>>, ,<<     p >>,A2
+    td,<<
+>>, ,<<     p >>,A3
   tr
-    td C1
-    td C2
-    td C3
->>
+    td,<<
+>>, ,<<     p >>,B1
+    td,<<
+>>, ,<<     p >>,B2
+    td,<<
+>>, ,<<     p >>,B3
+  tr
+    td,<<
+>>, ,<<     p >>,C1
+    td,<<
+>>, ,<<     p >>,C2
+    td,<<
+>>, ,<<     p >>,C3

@@ -114,7 +114,7 @@ describe('Special rendering tests', function () {
   var tests = [
     {
       sampleName: 'table_csv',
-      master: 'sample.table.csv',
+      master: 'sample.md.table.csv',
       output: 'sample.pug',
       expected: 'expected.pug',
       outputType: 'text',
@@ -122,7 +122,7 @@ describe('Special rendering tests', function () {
     },
     {
       sampleName: 'htable_csv',
-      master: 'sample.htable.csv',
+      master: 'sample.md.htable.csv',
       output: 'sample.pug',
       expected: 'expected.pug',
       outputType: 'text',

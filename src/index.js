@@ -11,7 +11,7 @@ const fs = require('fs')
 const plugins = require('./plugins')
 const { masterToPDF } = require('./masterToPDF.js')
 const { parseLocals, isLastLocalJsonPath } = require('./parseLocals');
-
+const { exec } = require('child_process')
 var input, output
 const version = require('../package.json').version
 
@@ -195,13 +195,31 @@ async function build (filepath) {
       break
     }
   }
-
-  if (!taskPromise) {
+  var generatingPDF = !taskPromise
+  if (generatingPDF) {
     taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath, locals)
   }
   await taskPromise
   var duration = ((performance.now() - t0) / 1000).toFixed(2)
   console.log(colors.magenta.bold(`... Done in ${duration}s`))
+  if (generatingPDF && relaxedGlobals.config.after) {
+    console.log(colors.magenta.bold("Running 'after' command..."))
+    var subprocess = exec(relaxedGlobals.config.after, cwd=relaxedGlobals.basedir)
+    
+    subprocess.stdout.on('data', (data) => {
+      console.log(`after-stdout: ${data}`);
+    });
+    subprocess.stderr.on('data', (data) => {
+      console.error(`after-stderr: ${data}`);
+    });
+    var promise = new Promise(resolve => {
+      subprocess.on('close', async function (code) {
+        resolve()
+      })
+    })
+    await promise
+    console.log(colors.magenta.bold("...done running 'after' command."))
+  }
   relaxedGlobals.busy = false
 }
 
