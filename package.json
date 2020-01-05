@@ -15,6 +15,7 @@
   "homepage": "https://github.com/RelaxedJS",
   "license": "ISC",
   "dependencies": {
+    "@iktakahiro/markdown-it-katex": "^3.1.0",
     "cheerio": "^1.0.0-rc.2",
     "chokidar": "^2.0.3",
     "colors": "^1.3.0",
@@ -30,7 +31,6 @@
     "katex": "^0.11.1",
     "markdown-it": "^10.0.0",
     "markdown-it-footnote": "^3.0.2",
-    "markdown-it-katex": "^2.0.3",
     "mathjax-node-page": "^3.0.1",
     "mermaid": "^8.0.0-rc.8",
     "node-sass": "^4.9.0",

@@ -1,10 +1,10 @@
 var hljs = require('highlight.js') // https://highlightjs.org/
 var markdown = require('markdown-it')
 var mdFootnote = require('markdown-it-footnote')
-var mdKatex = require('markdown-it-katex')
+var mdKatex = require('@iktakahiro/markdown-it-katex')
 
 exports.constructor = async function (params) {
-  var href = "https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.11.1/katex.min.css"
+  var href = "https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"
   return {
     pugFilters: { markdown: MarkdownPugFilter },
     headElements: `<link rel="stylesheet" href="${href}"></link>`
