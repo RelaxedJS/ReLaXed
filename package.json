@@ -1,12 +1,15 @@
 {
   "name": "relaxedjs",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/masterToPDF.js",
   "bin": {
     "relaxed": "src/index.js",
     "pretty-pdf-thumbnail": "src/cli-tools/pretty-pdf-thumbnail.js",
     "pdf2gif": "src/cli-tools/pdf2gif.js"
+  },
+  "engines": {
+    "node": ">=12"
   },
   "scripts": {
     "test": "mocha"
@@ -33,7 +36,7 @@
     "markdown-it-footnote": "^3.0.2",
     "mathjax-node-page": "^3.0.1",
     "mermaid": "^8.0.0-rc.8",
-    "node-sass": "^4.9.0",
+    "node-sass": "^6.0.0",
     "pug": "^2.0.3",
     "puppeteer": "^1.8.0"
   },
