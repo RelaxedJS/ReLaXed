@@ -1,6 +1,6 @@
 {
   "name": "relaxedjs",
-  "version": "0.2.4",
+  "version": "0.2.5",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/masterToPDF.js",
   "bin": {
@@ -33,7 +33,7 @@
     "markdown-it-footnote": "^3.0.2",
     "mathjax-node-page": "^3.0.1",
     "mermaid": "^8.0.0-rc.8",
-    "node-sass": "^4.9.0",
+    "node-sass": "^7.0.1",
     "pug": "^2.0.3",
     "puppeteer": "^1.8.0"
   },
