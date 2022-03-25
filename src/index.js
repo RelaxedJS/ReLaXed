@@ -34,6 +34,7 @@ program
 // ARGUMENTS PARSING AND SETUP
 
 program.parse(process.argv)
+const options = program.opts()
 
 if (!input || fs.lstatSync(input).isDirectory()) {
   input = autodetectMasterFile(input)
@@ -59,14 +60,14 @@ if (!output) {
 const outputPath = path.resolve(output)
 
 var tempDir
-if (program.temp) {
-  var validTempPath = fs.existsSync(program.temp) && fs.statSync(program.temp).isDirectory()
+if (options.temp) {
+  var validTempPath = fs.existsSync(options.temp) && fs.statSync(options.temp).isDirectory()
 
   if (validTempPath) {
-    tempDir = path.resolve(program.temp)
+    tempDir = path.resolve(options.temp)
   } else {
     console.error(colors.red('ReLaXed error: Could not find specified --temp directory: ' +
-      program.temp))
+      options.temp))
     process.exit(1)
   }
 } else {
@@ -77,16 +78,16 @@ const tempHTMLPath = path.join(tempDir, inputFilenameNoExt + '_temp.htm')
 
 // Default and additional watch locations
 let watchLocations = [inputDir]
-if (program.watch) {
-  watchLocations = watchLocations.concat(program.watch)
+if (options.watch) {
+  watchLocations = watchLocations.concat(options.watch)
 }
 
-let locals = parseLocals(program.locals, inputDir)
+let locals = parseLocals(options.locals, inputDir)
 
 // Google Chrome headless configuration
 const puppeteerConfig = {
   headless: true,
-  args: (!program.sandbox ? ['--no-sandbox'] : []).concat([
+  args: (!options.sandbox ? ['--no-sandbox'] : []).concat([
     '--disable-translate',
     '--disable-extensions',
     '--disable-sync'
@@ -104,7 +105,7 @@ const relaxedGlobals = {
   busy: false,
   config: {},
   configPlugins: [],
-  basedir: program.basedir || inputDir
+  basedir: options.basedir || inputDir
 }
 
 var updateConfig = async function () {
@@ -114,7 +115,7 @@ var updateConfig = async function () {
     if (configPath.endsWith('.json')) {
       relaxedGlobals.config = JSON.parse(data)
     } else {
-      relaxedGlobals.config = yaml.safeLoad(data)
+      relaxedGlobals.config = yaml.load(data)
     }
   }
   await plugins.updateRegisteredPlugins(relaxedGlobals, inputDir)
@@ -141,7 +142,7 @@ async function main () {
 
   await build(inputPath)
 
-  if (program.buildOnce) {
+  if (options.buildOnce) {
     process.exit(0)
   } else {
     watch()
@@ -163,7 +164,7 @@ async function build (filepath) {
 
   var updatedLocals = false
   if (isLastLocalJsonPath(filepath)) {
-    locals = parseLocals(program.locals, inputDir)
+    locals = parseLocals(options.locals, inputDir)
     updatedLocals = true
   }
 
