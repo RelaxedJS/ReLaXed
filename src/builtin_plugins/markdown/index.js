@@ -7,7 +7,7 @@ exports.constructor = async function (params) {
   var href = "https://cdn.jsdelivr.net/npm/katex@0.11.1/dist/katex.min.css"
   return {
     pugFilters: { markdown: MarkdownPugFilter },
-    headElements: `<link rel="stylesheet" href="${href}"></link>`
+    headElements: `<link rel="stylesheet" href="${href}" />`
   }
 }
 function MarkdownPugFilter (text, options) {
@@ -28,5 +28,3 @@ function MarkdownPugFilter (text, options) {
   md.use(mdKatex)
   return md.render(text)
 }
-
-
