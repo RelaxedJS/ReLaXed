@@ -6,6 +6,7 @@ const filesize = require('filesize')
 const path = require('path')
 const { performance } = require('perf_hooks')
 
+// Returns undefined if successful or an error object on failure
 exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, outputPath, locals) {
   var t0 = performance.now()
   var page = relaxedGlobals.puppeteerPage
@@ -39,7 +40,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     } catch (error) {
       console.log(error.message)
       console.error(colors.red('There was a Pug error (see above)'))
-      return
+      return error
     }
   } else if (masterPath.endsWith('.html')) {
     html = fs.readFileSync(masterPath, 'utf8')
@@ -83,7 +84,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
                   'Increase the timeout by writing "pageRenderingTimeout: 60" ' +
                   'at the top of your config.yml. Default is 30 (seconds).')
     }
-    return
+    return error
   }
   
   var tLoad = performance.now()

@@ -110,6 +110,29 @@ describe('Sample tests', function () {
   })
 })
 
+describe('Error tests', function () {
+  var tests = [
+    {
+      sampleName: 'error',
+      timeout: 10000
+    },
+  ]
+  tests.forEach(function (test) {
+    it('fails to render sample "' + test.sampleName + '"', function (done) {
+      this.timeout(test.timeout)
+      var basedir = path.join(__dirname, 'samples', 'pug', test.sampleName)
+      var process = spawn(
+        relaxed,
+        [path.join(basedir, 'master.pug'), '--build-once', '--no-sandbox'].concat(test.cmdOptions || [])
+      )
+      process.on('close', function (code) {
+        assert.equal(code, 1)
+        done()
+      })
+    })
+  })
+})
+
 describe('Special rendering tests', function () {
   var tests = [
     {
