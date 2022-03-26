@@ -140,10 +140,10 @@ async function main () {
     console.log(colors.red('Error: ' + err.toString()))
   })
 
-  await build(inputPath)
+  const buildError = await build(inputPath)
 
-  if (options.buildOnce) {
-    process.exit(0)
+  if (program.buildOnce) {
+    process.exit(buildError ? 1 : 0)
   } else {
     watch()
   }
@@ -200,10 +200,10 @@ async function build (filepath) {
   if (generatingPDF) {
     taskPromise = masterToPDF(inputPath, relaxedGlobals, tempHTMLPath, outputPath, locals)
   }
-  await taskPromise
+  const generateError = await taskPromise
   var duration = ((performance.now() - t0) / 1000).toFixed(2)
   console.log(colors.magenta.bold(`... Done in ${duration}s`))
-  if (generatingPDF && relaxedGlobals.config.after) {
+  if (generatingPDF && relaxedGlobals.config.after && !generateError) {
     console.log(colors.magenta.bold("Running 'after' command..."))
     var subprocess = exec(relaxedGlobals.config.after, cwd=relaxedGlobals.basedir)
     
@@ -222,6 +222,7 @@ async function build (filepath) {
     console.log(colors.magenta.bold("...done running 'after' command."))
   }
   relaxedGlobals.busy = false
+  return generateError
 }
 
 /**
