@@ -30,5 +30,5 @@ var vegaliteHandler = async function (vegalitePath, page) {
   })
 
   var svgPath = vegalitePath.substr(0, vegalitePath.length - '.vegalite.json'.length) + '.svg'
-  fs.writeFileSync(svgPath, svg, 'base64')
+  fs.writeFileSync(svgPath, svg)
 }

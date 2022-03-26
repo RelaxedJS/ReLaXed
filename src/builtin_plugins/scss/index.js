@@ -1,4 +1,4 @@
-const sass = require('node-sass')
+const sass = require('sass')
 
 exports.constructor = async function (params) {
   return {
@@ -7,7 +7,7 @@ exports.constructor = async function (params) {
 }
 
 function ScssPugFilter (text, options) {
-  var file = options.filename
-  options = file.endsWith('scss') ? { file } : { data: text }
-  return sass.renderSync(options).css.toString('utf8')
+  if (options.filename.endsWith('scss'))
+    return sass.compile(options.filename).css
+  return sass.compileString(text).css
 }
