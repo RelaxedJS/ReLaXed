@@ -22,7 +22,7 @@ exports.masterToPDF = async function (masterPath, relaxedGlobals, tempHTMLPath, 
     }
     pluginPugHeaders = pluginPugHeaders.join('\n\n')
 
-    var pugFilters = Object.assign(...pluginHooks.pugFilters.map(o => o.instance))
+    var pugFilters = Object.assign({}, ...pluginHooks.pugFilters.map(o => o.instance))
     try {
       var masterPug = fs.readFileSync(masterPath, 'utf8')
 
