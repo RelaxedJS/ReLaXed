@@ -142,7 +142,7 @@ async function main () {
 
   const buildError = await build(inputPath)
 
-  if (program.buildOnce) {
+  if (options.buildOnce) {
     process.exit(buildError ? 1 : 0)
   } else {
     watch()
