@@ -2,6 +2,5 @@
     "high": true,
     "package-manager": "yarn",
     "skip-dev": true,
-    "allowlist": [],
-    "registry": "https://artifacts.eu.365farmnet.com/repository/npm/"
+    "allowlist": []
 }
