@@ -1,0 +1,6 @@
+{
+    "high": true,
+    "package-manager": "yarn",
+    "skip-dev": true,
+    "allowlist": []
+}
