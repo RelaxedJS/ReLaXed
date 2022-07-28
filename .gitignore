@@ -81,3 +81,6 @@ package-lock.json
 .eslintrc.*
 
 *.local.bak
+
+#IntelliJ
+.idea

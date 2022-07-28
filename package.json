@@ -1,6 +1,6 @@
 {
   "name": "relaxedjs",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Create PDF documents using web technologies (PDF/SCSS)",
   "main": "src/masterToPDF.js",
   "bin": {
@@ -38,9 +38,13 @@
     "sass": "^1.49.9"
   },
   "devDependencies": {
+    "audit-ci": "6.3.0",
     "diff": "^5.0.0",
     "mocha": "^9.2.2",
     "pdf-image": "^2.0.0",
     "pixel-diff": "^1.0.1"
+  },
+  "resolutions": {
+    "jpeg-js": "^0.4.4"
   }
 }
