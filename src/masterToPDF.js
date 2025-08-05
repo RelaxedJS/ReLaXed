@@ -2,7 +2,7 @@ const pug = require('pug')
 const colors = require('colors/safe')
 const cheerio = require('cheerio')
 const fs = require('fs')
-const filesize = require('filesize')
+const { filesize } = require('filesize')
 const path = require('path')
 const { performance } = require('perf_hooks')
 
