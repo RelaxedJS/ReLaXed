@@ -173,9 +173,9 @@ function waitForNetworkIdle (page, timeout, maxInflightRequests = 0) {
   return promise
 
   function onTimeoutDone () {
-    page.removeListener('request', onRequestStarted)
-    page.removeListener('requestfinished', onRequestFinished)
-    page.removeListener('requestfailed', onRequestFinished)
+    page.off('request', onRequestStarted)
+    page.off('requestfinished', onRequestFinished)
+    page.off('requestfailed', onRequestFinished)
     fulfill()
   }
 
