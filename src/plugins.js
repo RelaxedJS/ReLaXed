@@ -2,8 +2,19 @@ const path = require('path')
 const colors = require('colors/safe')
 const builtinPlugins = require('./builtin_plugins')
 const fs = require('fs')
+const { execSync } = require('child_process')
 
 exports.builtinDefaultPlugins = builtinPlugins.defaultPlugins
+
+// Function to get the global npm root directory
+var getGlobalNpmRoot = function () {
+  try {
+    return execSync('npm root -g', { encoding: 'utf8', stdio: 'pipe' }).trim()
+  } catch (error) {
+    // Fallback to common paths if npm command fails
+    return null
+  }
+}
 
 var createConfigPlugin = async function (pluginName, parameters, localPath) {
   // for each plugin, look for a local definition, a built-in definition, or
@@ -30,9 +41,27 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
       {
         location: `relaxed-${pluginName}`,
         origin: `relaxed-${pluginName}`
+      }
+    ]
+
+    // Add global npm root path if available
+    var globalNpmRoot = getGlobalNpmRoot()
+    if (globalNpmRoot) {
+      possiblePaths.push({
+        location: path.join(globalNpmRoot, `relaxed-${pluginName}`),
+        origin: `global relaxed-${pluginName}`
+      })
+    }
+
+    // Add common fallback paths
+    var fallbackPaths = [
+      {
+        // macOS homebrew (Apple Silicon)
+        location: `/opt/homebrew/lib/node_modules/relaxed-${pluginName}`,
+        origin: `relaxed-${pluginName}`
       },
       {
-        // linux
+        // linux & macOS homebrew (Intel)
         location: `/usr/local/lib/node_modules/relaxed-${pluginName}`,
         origin: `relaxed-${pluginName}`
       },
@@ -42,6 +71,7 @@ var createConfigPlugin = async function (pluginName, parameters, localPath) {
         origin: `relaxed-${pluginName}`
       }
     ]
+    possiblePaths = possiblePaths.concat(fallbackPaths)
     for (var possiblePath of possiblePaths) {
       try {
         plugin = require(possiblePath.location)
